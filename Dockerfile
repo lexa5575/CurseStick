@@ -15,10 +15,10 @@ WORKDIR /var/www/html
 COPY . .
 
 # Установка зависимостей Laravel + запуск команд
-RUN composer install --no-dev --optimize-autoloader && \
-    php artisan key:generate && \
-    php artisan config:cache && \
-    php artisan migrate --force
+RUN apt-get update && apt-get install -y \
+    git curl zip unzip libpq-dev libzip-dev libonig-dev libxml2-dev \
+    libicu-dev \
+    && docker-php-ext-install pdo pdo_pgsql zip mbstring intl
 
 # Указываем порт
 EXPOSE 8000
