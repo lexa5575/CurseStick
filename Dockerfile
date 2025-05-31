@@ -3,22 +3,15 @@ FROM composer:2.6 as build
 
 WORKDIR /app
 
-# Установка необходимых зависимостей и расширений PHP для Composer
-RUN apt-get update && apt-get install -y \
-    libicu-dev \
-    libzip-dev \
-    libpng-dev \
-    libjpeg62-turbo-dev \
-    libfreetype6-dev \
-    && docker-php-ext-configure intl \
-    && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install intl exif mbstring gd zip
-
 # Копируем только composer.json и composer.lock сначала
 COPY composer.json composer.lock ./
 
-# Устанавливаем зависимости
-RUN composer install --no-autoloader --no-scripts --no-dev
+# Устанавливаем зависимости, игнорируя требования платформы
+RUN composer install --no-autoloader --no-scripts --no-dev \
+    --ignore-platform-req=ext-intl \
+    --ignore-platform-req=ext-mbstring \
+    --ignore-platform-req=ext-exif \
+    --ignore-platform-req=ext-gd
 
 # Копируем весь проект
 COPY . .
