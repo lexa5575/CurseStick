@@ -26,7 +26,9 @@ services:
       - key: DB_USERNAME
         value: cursestock_user
       - key: DB_PASSWORD
-        value: aKP60R6ZwzX6ddYtUOCbTGJj3lBYTmm
+        value: aKP60RR6ZwzX6ddYtUOCbTGJj3lBYTmm
+      - key: DB_URL
+        value: postgresql://cursestock_user:aKP60RR6ZwzX6ddYtUOCbTGJj3lBYTmm@dpg-d0tcncadbo4c739hp6t0-a.frankfurt-postgres.render.com/cursestock
       - key: SESSION_DRIVER
         value: database
       - key: CACHE_DRIVER
