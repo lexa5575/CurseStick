@@ -32,15 +32,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libjpeg-dev \
     libfreetype6-dev \
     libwebp-dev \
-    libpq-dev && \
+    libpq-dev \
+    libicu-dev && \
     # Очищаем кэш apt
     rm -rf /var/lib/apt/lists/*
 
 # Устанавливаем расширения PHP
-# Для Debian может потребоваться предварительно установить зависимости для некоторых расширений
-# Например, libmagickwand-dev для imagick, но мы его пока не ставим
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
-    && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql zip bcmath pcntl exif opcache
+    && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql zip bcmath pcntl exif opcache intl
 
 # Устанавливаем Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
