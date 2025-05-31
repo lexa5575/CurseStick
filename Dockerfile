@@ -1,25 +1,35 @@
-# Используем образ с PHP и Composer уже предустановленными
-FROM composer:2.6 as build
+# Основной образ PHP с необходимыми расширениями
+FROM php:8.2-fpm as builder
 
-WORKDIR /app
+# Устанавливаем необходимые зависимости и расширения
+RUN apt-get update && apt-get install -y \
+    libpq-dev \
+    libzip-dev \
+    git \
+    zip \
+    unzip \
+    libicu-dev \
+    libfreetype6-dev \
+    libjpeg62-turbo-dev \
+    libpng-dev \
+    && docker-php-ext-configure intl \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo pdo_pgsql zip intl exif mbstring gd
 
-# Копируем только composer.json и composer.lock сначала
+# Устанавливаем Composer
+COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www/html
+
+# Копируем composer файлы и устанавливаем зависимости
 COPY composer.json composer.lock ./
-
-# Устанавливаем зависимости, игнорируя требования платформы
-RUN composer install --no-autoloader --no-scripts --no-dev \
-    --ignore-platform-req=ext-intl \
-    --ignore-platform-req=ext-mbstring \
-    --ignore-platform-req=ext-exif \
-    --ignore-platform-req=ext-gd
+RUN composer install --no-autoloader --no-scripts --no-dev
 
 # Копируем весь проект
 COPY . .
-
-# Добавляем autoloader
 RUN composer dump-autoload --optimize --no-dev
 
-# Второй этап: создание финального образа
+# Финальный образ
 FROM php:8.2-fpm
 
 # Устанавливаем необходимые расширения PHP
@@ -38,15 +48,15 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /var/www/html
 
-# Копируем все файлы из build этапа
-COPY --from=build /app /var/www/html
+# Копируем все файлы из builder этапа
+COPY --from=builder /var/www/html /var/www/html
 
 # Создаем файл .env и добавляем права на директории
 RUN touch .env && \
     chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Создаем скрипт запуска
-COPY --from=build /usr/bin/composer /usr/bin/composer
+COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
 
 RUN echo '#!/bin/sh\n\
 # Создаем базовый .env файл из переменных окружения\n\
