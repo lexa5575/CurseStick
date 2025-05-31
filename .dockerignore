@@ -1,0 +1,47 @@
+# .dockerignore for Laravel + Render deployment
+
+# Local development files
+.git
+.github
+.idea
+.vscode
+.DS_Store
+
+# Environment variables (should be set in Render dashboard)
+.env
+.env.*
+!.env.example
+
+# Node.js dependencies (not needed for PHP container)
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Laravel storage logs and local files
+/storage/*.key
+/storage/logs/*
+/storage/framework/cache/*
+/storage/framework/sessions/*
+/storage/framework/views/*
+
+# Tests
+/tests
+/phpunit.xml
+.phpunit.result.cache
+
+# Do NOT ignore these files (needed for the container)
+!/vendor
+!/composer.json
+!/composer.lock
+!/database
+!/public
+!/resources
+!/app
+!/bootstrap
+!/config
+!/routes
+
+# Project specific
+README.md
+CHANGELOG.md
+.editorconfig
