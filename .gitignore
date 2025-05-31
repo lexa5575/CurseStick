@@ -1,48 +1,40 @@
-# Laravel - PHPUnit
-/.phpunit.cache
-.phpunit.result.cache
-
-# Node dependencies
+# Laravel
+/vendor
 /node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/storage/debugbar
+/storage/logs
+.env.testing
+.phpunit.result.cache
+.php-cs-fixer.cache
+Homestead.yaml
+Homestead.json
+.env.backup
+.env.example.local
+.env.local
+
+# Laravel IDE helpers (barryvdh)
+.phpstorm.meta.php
+_ide_helper.php
+_ide_helper_models.php
+
+# Composer
+composer.phar
+
+# Node
 npm-debug.log
 yarn-error.log
 
-# Laravel - Public directory generated content
-/public/build
-/public/hot
-/public/storage
+# IDEs
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
 
-# Laravel - Storage
-/storage/*.key
-/storage/pail
-/storage/logs/*.log
-/storage/framework/cache/*
-/storage/framework/sessions/*
-/storage/framework/views/*
-
-# Environment files
-.env
-.env.backup
-.env.production
-
-# IDE and editor files
-.phpactor.json
-Homestead.json
-Homestead.yaml
-/auth.json
-/.fleet
-/.idea
-/.nova
-/.vscode
-/.zed
+# macOS
 .DS_Store
 
-# Important: DO NOT ignore these files for Render deployment
-# The vendor directory can be large, so it's typically ignored in standard Laravel projects
-# But for Render deployment with Docker, it may be committed if needed
-# /vendor
-
-# Critical files for Render deployment - make sure these are NEVER ignored
-# composer.json and composer.lock are essential for deployment
-!composer.json
-!composer.lock
+# Docker (если не хочешь коммитить Docker образы)
+*.tar

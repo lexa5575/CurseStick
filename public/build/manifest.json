@@ -1,0 +1,32 @@
+{
+  "_index-xsH4HHeE.js": {
+    "file": "assets/index-xsH4HHeE.js",
+    "name": "index"
+  },
+  "resources/css/app.css": {
+    "file": "assets/app-CGtzmVaP.css",
+    "src": "resources/css/app.css",
+    "isEntry": true
+  },
+  "resources/js/app.js": {
+    "file": "assets/app-BCRPc28N.js",
+    "name": "app",
+    "src": "resources/js/app.js",
+    "isEntry": true,
+    "imports": [
+      "_index-xsH4HHeE.js"
+    ]
+  },
+  "resources/js/vue/main.js": {
+    "file": "assets/main-DGBIaOTT.js",
+    "name": "main",
+    "src": "resources/js/vue/main.js",
+    "isEntry": true,
+    "imports": [
+      "_index-xsH4HHeE.js"
+    ],
+    "css": [
+      "assets/main-DEeOqS9r.css"
+    ]
+  }
+}

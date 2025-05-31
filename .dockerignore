@@ -1,47 +1,23 @@
-# .dockerignore for Laravel + Render deployment
+# Кэш и мусор
+*.log
+*.sqlite
+storage/debugbar
+storage/*.log
 
-# Local development files
-.git
-.github
+# Node и JS окружение (если не используешь)
+node_modules
+npm-debug.log
+
+# IDE и ОС
 .idea
 .vscode
 .DS_Store
 
-# Environment variables (should be set in Render dashboard)
-.env
-.env.*
-!.env.example
-
-# Node.js dependencies (not needed for PHP container)
-node_modules
-npm-debug.log
-yarn-error.log
-
-# Laravel storage logs and local files
-/storage/*.key
-/storage/logs/*
-/storage/framework/cache/*
-/storage/framework/sessions/*
-/storage/framework/views/*
-
-# Tests
-/tests
-/phpunit.xml
+# Laravel специфичные файлы
+.env.testing
 .phpunit.result.cache
+.php-cs-fixer.cache
 
-# Do NOT ignore these files (needed for the container)
-!/vendor
-!/composer.json
-!/composer.lock
-!/database
-!/public
-!/resources
-!/app
-!/bootstrap
-!/config
-!/routes
-
-# Project specific
-README.md
-CHANGELOG.md
-.editorconfig
+# ❗ Оставляем .env и composer.lock для корректной сборки
+# ❗ Но ИСКЛЮЧАЕМ vendor — он устанавливается внутри контейнера
+vendor/
