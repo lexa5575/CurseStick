@@ -24,11 +24,11 @@ WORKDIR /var/www/html
 
 # Копируем composer файлы и устанавливаем зависимости
 COPY composer.json composer.lock ./
-RUN composer install --no-autoloader --no-scripts --no-dev
+RUN composer install --no-autoloader --no-scripts --no-dev --ignore-platform-reqs
 
 # Копируем весь проект
 COPY . .
-RUN composer dump-autoload --optimize --no-dev
+RUN composer dump-autoload --optimize --no-dev --ignore-platform-reqs
 
 # Финальный образ
 FROM php:8.2-fpm
