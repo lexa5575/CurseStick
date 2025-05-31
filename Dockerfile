@@ -13,7 +13,6 @@ RUN npm install
 COPY . .
 
 # Собираем фронтенд-ассеты
-# Если у тебя другая команда для сборки, измени ее здесь
 RUN npm run build
 
 # Этап 2: Основной образ PHP + Nginx на Debian
@@ -41,20 +40,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql zip bcmath pcntl exif opcache intl
 
-# Копируем наш оверрайд для конфигурации PHP-FPM (до установки Composer и копирования кода)
-COPY .docker/php-fpm-override.conf /usr/local/etc/php-fpm.d/zzz-php-fpm-override.conf
+# Копируем нашу полную конфигурацию для пула PHP-FPM www
+COPY .docker/php-fpm-pool.conf /usr/local/etc/php-fpm.d/www.conf
 
 # Устанавливаем Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Копируем конфигурацию Nginx для сайта
+# Копируем конфигурации Nginx
 COPY .docker/nginx.conf /etc/nginx/sites-available/default
-# Активируем наш сайт и удаляем стандартный сайт Nginx, если он есть
+COPY .docker/minimal-nginx.conf /etc/nginx/nginx.conf
+
+# Активируем наш сайт
 RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default \
-    && if [ -f /etc/nginx/sites-enabled/default ]; then rm -f /etc/nginx/sites-enabled/default; fi \
+    && if [ -L /etc/nginx/sites-enabled/default ] && [ ! -e /etc/nginx/sites-enabled/default ] ; then rm -f /etc/nginx/sites-enabled/default; fi \
     && ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
-    # Эта двойная проверка и создание ссылки нужны, чтобы избежать ошибки, если дефолтный сайт уже удален
-    # или если наша ссылка уже существует.
 
 # Копируем конфигурацию Supervisor
 COPY .docker/supervisor.conf /etc/supervisor/conf.d/app.conf
