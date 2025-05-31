@@ -77,4 +77,6 @@ EXPOSE 80
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Команда по умолчанию для Supervisor
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"] 
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+
+# Force new build by adding a comment 
