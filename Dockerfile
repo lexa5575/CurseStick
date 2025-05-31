@@ -21,14 +21,23 @@ WORKDIR /var/www/html
 # Копируем проект в контейнер
 COPY . .
 
-# Установка зависимостей Laravel
-RUN composer install --no-dev --optimize-autoloader && \
-    php artisan key:generate && \
-    php artisan config:cache && \
-    php artisan route:cache && \
-    php artisan view:cache
+# Копируем .env.example в .env для базовой настройки
+RUN cp .env.example .env
 
+# Установка зависимостей Laravel
+RUN composer install --no-dev --optimize-autoloader
+
+# Генерация ключа и кэширование, выполняется в entrypoint
 EXPOSE 8000
 
-# Старт Laravel-сервера
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
+# Создаем entrypoint скрипт
+RUN echo '#!/bin/sh\n\
+php artisan key:generate --force\n\
+php artisan config:cache\n\
+php artisan route:cache\n\
+php artisan view:cache\n\
+php artisan serve --host=0.0.0.0 --port=8000' > /var/www/html/entrypoint.sh \
+    && chmod +x /var/www/html/entrypoint.sh
+
+# Старт через entrypoint
+CMD ["/var/www/html/entrypoint.sh"]
