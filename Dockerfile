@@ -27,6 +27,7 @@ RUN apk update && apk add --no-cache \
     supervisor \
     curl \
     libzip-dev \
+    zlib-dev \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \

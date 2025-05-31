@@ -56,7 +56,7 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
-        value: postgresql://cursestock_user:aKP60RR6ZwzX6ddYtUOCbTGJj3lBYTmm@dpg-d0tcncadbo4c739hp6t0-a.frankfurt-postgres.render.com/cursestock
+        sync: false
       
       # Sessions
       - key: SESSION_DRIVER
