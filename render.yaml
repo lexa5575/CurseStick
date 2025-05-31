@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: crusestick
+    env: php
+    plan: free
+    buildCommand: composer install && php artisan migrate --force
+    startCommand: php artisan serve --host 0.0.0.0 --port 10000
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_KEY
+        generateValue: true
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DB_HOST
+        value: dpg-d0tcncadbo4c739hp6t0-a
+      - key: DB_PORT
+        value: 5432
+      - key: DB_DATABASE
+        value: cursestock
+      - key: DB_USERNAME
+        value: cursestock_user
+      - key: DB_PASSWORD
+        value: aKP60RR6ZwzX6ddYtUOCbTGJj3lBYTmm

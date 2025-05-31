@@ -1,0 +1,56 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Дополнительные пользовательские стили */
+@layer utilities {
+    .z-max {
+        z-index: 99999 !important;
+    }
+    
+    .dropdown-container {
+        position: static !important;
+    }
+    
+    .dropdown-menu {
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        z-index: 99999 !important;
+    }
+}
+
+@layer components {
+    .banner-slide {
+        @apply relative overflow-hidden rounded-lg shadow-lg;
+    }
+
+    .payment-icon {
+        @apply w-20 h-12 mx-2 my-2 flex items-center justify-center bg-white rounded shadow-sm opacity-80 hover:opacity-100 transition-all hover:shadow-md;
+    }
+
+    .nav-link {
+        @apply text-gray-700 hover:text-blue-600 px-3 py-2 rounded transition-colors;
+    }
+
+    .nav-link.active {
+        @apply text-blue-600 font-semibold;
+    }
+
+    .footer-link {
+        @apply text-gray-400 hover:text-white transition-colors;
+    }
+    
+    /* Стили для выпадающего меню категорий */
+    .category-dropdown {
+        @apply absolute left-0 mt-2 w-56 rounded-md shadow-xl bg-white ring-1 ring-black ring-opacity-5 focus:outline-none z-max;
+    }
+    
+    .category-dropdown-item {
+        @apply block px-4 py-3 text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors duration-150 border-b border-gray-100 last:border-0;
+    }
+    
+    .category-dropdown-header {
+        @apply px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-100;
+    }
+}

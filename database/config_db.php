@@ -1,0 +1,1 @@
+<?php return ["database.default" => "sqlite", "database.connections.sqlite.database" => database_path("fresh_database.sqlite")];

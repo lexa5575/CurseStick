@@ -1,0 +1,32 @@
+{
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "watch": "vite build --watch"
+    },
+    "devDependencies": {
+        "autoprefixer": "^10.4.21",
+        "axios": "^1.8.2",
+        "laravel-vite-plugin": "^1.2.0",
+        "postcss": "^8.5.3",
+        "tailwindcss": "^3.3.3",
+        "vite": "^6.3.5"
+    },
+    "name": "crusestick",
+    "version": "1.0.0",
+    "description": "This is a web application built with Laravel, Filament Admin, Livewire, and Blade. It includes a simple product management system with a user-friendly admin panel.",
+    "main": "index.js",
+    "directories": {
+        "test": "tests"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "dependencies": {
+        "@popperjs/core": "^2.11.8",
+        "@vitejs/plugin-vue": "^5.2.4",
+        "vue": "^3.5.14"
+    }
+}
