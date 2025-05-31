@@ -1,0 +1,76 @@
+{
+    "name": "binafy/laravel-cart",
+    "description": "Laravel Cart is a customizable package for adding shopping cart functionality to Laravel applications",
+    "keywords": [
+        "binafy",
+        "milwad",
+        "laravel",
+        "framework",
+        "cart",
+        "laravel-cart",
+        "laravel cart",
+        "laravel cart package",
+        "laravel package",
+        "laravel-cart-shop",
+        "laravel-shop",
+        "laravel e-commerce",
+        "laravel basket",
+        "laravel shopping",
+        "laravel shopping cart",
+        "laravelshoppingcart"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "minimum-stability": "stable",
+    "homepage": "https://github.com/binafy/laravel-cart",
+    "authors": [
+        {
+            "name": "milwad-dev",
+            "email": "milwad.dev@gmail.com",
+            "role": "author",
+            "homepage": "https://github.com/milwad-dev"
+        },
+        {
+            "name": "binafy",
+            "role": "owner",
+            "homepage": "https://github.com/binafy"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Binafy\\LaravelCart\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests"
+        }
+    },
+    "require": {
+        "php": "^8.0",
+        "laravel/framework": ">=9.0"
+    },
+    "require-dev": {
+        "pestphp/pest-plugin-laravel": "^1.4.0|^2.0.0|^3.1.0",
+        "orchestra/testbench": "^7.0|^8.0|^9.0|^10.0",
+        "laravel/pint": "^1.5"
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "scripts": {
+        "pint": "vendor/bin/pint .github config database src tests",
+        "test": "vendor/bin/pest",
+        "test-coverage": "vendor/bin/pest --coverage-html ./coverage"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Binafy\\LaravelCart\\Providers\\LaravelCartServiceProvider"
+            ]
+        }
+    }
+}
