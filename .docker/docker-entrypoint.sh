@@ -20,6 +20,15 @@ if [ -f /etc/nginx/sites-available/default ]; then
     sed -i "s/listen \[::\]:80 default_server;/listen \[::\]:${NGINX_PORT} default_server;/g" /etc/nginx/sites-available/default
 fi
 
+# Создаем директорию для логов PHP-FPM и даем права
+if [ ! -d /usr/local/var/log ]; then
+    mkdir -p /usr/local/var/log
+fi
+# Создаем сам лог-файл, если его нет, и даем права
+touch /usr/local/var/log/php-fpm.log
+chown www-data:www-data /usr/local/var/log /usr/local/var/log/php-fpm.log
+chmod -R 775 /usr/local/var/log
+
 # Запускаем оптимизацию Laravel, если это продакшн
 # (Render обычно устанавливает APP_ENV=production)
 if [ "$APP_ENV" = "production" ]; then
