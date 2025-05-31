@@ -21,8 +21,8 @@ WORKDIR /var/www/html
 # Копируем проект в контейнер
 COPY . .
 
-# Копируем .env.example в .env для базовой настройки
-RUN cp .env.example .env
+# Создаем базовый .env файл
+RUN touch .env
 
 # Установка зависимостей Laravel
 RUN composer install --no-dev --optimize-autoloader
@@ -32,11 +32,24 @@ EXPOSE 8000
 
 # Создаем entrypoint скрипт
 RUN echo '#!/bin/sh\n\
-php artisan key:generate --force\n\
-php artisan config:cache\n\
-php artisan route:cache\n\
-php artisan view:cache\n\
-php artisan serve --host=0.0.0.0 --port=8000' > /var/www/html/entrypoint.sh \
+# Устанавливаем переменные окружения из Render\n\
+echo "\$APP_ENV" > .env\n\
+echo "APP_KEY=" >> .env\n\
+echo "DB_CONNECTION=\$DB_CONNECTION" >> .env\n\
+echo "DB_HOST=\$DB_HOST" >> .env\n\
+echo "DB_PORT=\$DB_PORT" >> .env\n\
+echo "DB_DATABASE=\$DB_DATABASE" >> .env\n\
+echo "DB_USERNAME=\$DB_USERNAME" >> .env\n\
+echo "DB_PASSWORD=\$DB_PASSWORD" >> .env\n\
+echo "APP_DEBUG=\$APP_DEBUG" >> .env\n\
+echo "APP_URL=\$APP_URL" >> .env\n\
+# Выполняем команды Laravel\n\
+php artisan key:generate --force || true\n\
+php artisan config:cache || true\n\
+php artisan route:cache || true\n\
+php artisan view:cache || true\n\
+php artisan serve --host=0.0.0.0 --port=8000\n\
+' > /var/www/html/entrypoint.sh \
     && chmod +x /var/www/html/entrypoint.sh
 
 # Старт через entrypoint
