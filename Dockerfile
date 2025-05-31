@@ -41,6 +41,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql zip bcmath pcntl exif opcache intl
 
+# Копируем наш оверрайд для конфигурации PHP-FPM (до установки Composer и копирования кода)
+COPY .docker/php-fpm-override.conf /usr/local/etc/php-fpm.d/zzz-php-fpm-override.conf
+
 # Устанавливаем Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -60,7 +63,7 @@ COPY .docker/supervisor.conf /etc/supervisor/conf.d/app.conf
 COPY .docker/docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-# Копируем код приложения (без vendor и node_modules, они будут установлены/скопированы ниже)
+# Копируем код приложения (один раз, после всех конфигураций)
 COPY --chown=www-data:www-data . /var/www/html
 
 # Копируем собранные фронтенд-ассеты из первого этапа
@@ -80,6 +83,4 @@ EXPOSE 80
 ENTRYPOINT ["docker-entrypoint.sh"]
 
 # Команда по умолчанию для Supervisor
-CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
-
-# Force new build by adding a comment 
+CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"] 
