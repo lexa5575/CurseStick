@@ -1,4 +1,4 @@
-# Этап 1: Сборка фронтенд-ассетов
+# Этап 1: Сборка фронтенд-ассетов (остается на Alpine для скорости и размера этого этапа)
 FROM node:22-alpine as frontend_builder
 
 WORKDIR /app
@@ -16,41 +16,43 @@ COPY . .
 # Если у тебя другая команда для сборки, измени ее здесь
 RUN npm run build
 
-# Этап 2: Основной образ PHP + Nginx
-FROM php:8.3-fpm-alpine
+# Этап 2: Основной образ PHP + Nginx на Debian
+FROM php:8.3-fpm
 
 WORKDIR /var/www/html
 
 # Устанавливаем системные зависимости
-RUN apk update && apk add --no-cache \
-    build-base \
-    pkgconfig \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx \
     supervisor \
     curl \
     libzip-dev \
-    zlib-dev \
+    zlib1g-dev \
     libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
     libwebp-dev \
-    postgresql-dev \
-    # Для поддержки русского языка в gd (если нужно)
-    # msttcorefonts-installer fontconfig && \
-    # update-ms-fonts && \
-    fc-cache -fsv
+    libpq-dev && \
+    # Очищаем кэш apt
+    rm -rf /var/lib/apt/lists/*
 
 # Устанавливаем расширения PHP
+# Для Debian может потребоваться предварительно установить зависимости для некоторых расширений
+# Например, libmagickwand-dev для imagick, но мы его пока не ставим
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg --with-webp \
     && docker-php-ext-install -j$(nproc) gd pdo pdo_pgsql zip bcmath pcntl exif opcache
 
 # Устанавливаем Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Копируем конфигурацию Nginx
-COPY .docker/nginx.conf /etc/nginx/nginx.conf
-# Можно также копировать специфичные конфиги для сайта, если нужно
-# COPY .docker/site.conf /etc/nginx/http.d/default.conf
+# Копируем конфигурацию Nginx для сайта
+COPY .docker/nginx.conf /etc/nginx/sites-available/default
+# Активируем наш сайт и удаляем стандартный сайт Nginx, если он есть
+RUN ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default \
+    && if [ -f /etc/nginx/sites-enabled/default ]; then rm -f /etc/nginx/sites-enabled/default; fi \
+    && ln -sf /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+    # Эта двойная проверка и создание ссылки нужны, чтобы избежать ошибки, если дефолтный сайт уже удален
+    # или если наша ссылка уже существует.
 
 # Копируем конфигурацию Supervisor
 COPY .docker/supervisor.conf /etc/supervisor/conf.d/app.conf
