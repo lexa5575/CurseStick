@@ -1,7 +1,7 @@
-# Используем официальный PHP-образ с нужными расширениями
+# Используем официальный образ PHP с FPM
 FROM php:8.2-fpm
 
-# Установка системных зависимостей и PHP-расширений
+# Устанавливаем системные зависимости и PHP-расширения
 RUN apt-get update && apt-get install -y \
     git \
     unzip \
@@ -9,7 +9,8 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     libzip-dev \
     zip \
-    && docker-php-ext-install pdo pdo_pgsql zip
+    libicu-dev \
+    && docker-php-ext-install pdo pdo_pgsql zip intl bcmath exif
 
 # Установка Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
@@ -17,7 +18,7 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 # Установка рабочей директории
 WORKDIR /var/www/html
 
-# Копируем все файлы проекта
+# Копируем проект в контейнер
 COPY . .
 
 # Установка зависимостей Laravel
@@ -27,8 +28,7 @@ RUN composer install --no-dev --optimize-autoloader && \
     php artisan route:cache && \
     php artisan view:cache
 
-# Открываем порт (опционально, Render сам пробросит)
 EXPOSE 8000
 
-# Запуск Laravel сервера
+# Старт Laravel-сервера
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8000"]
