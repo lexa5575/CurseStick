@@ -16,7 +16,11 @@
 # Зависимости и сгенерированные файлы
 /node_modules
 /public/build
+/vendor
 
+# Vite
+.vite
+*.local
 
 # Laravel IDE helpers
 .phpstorm.meta.php

@@ -6,23 +6,116 @@ services:
     buildCommand: ./build.sh
     startCommand: php artisan serve --host 0.0.0.0 --port $PORT
     envVars:
+      # App Settings
       - key: APP_NAME
         value: CruseStick
       - key: APP_ENV
         value: production
       - key: APP_DEBUG
         value: false
+      - key: APP_KEY
+        generateValue: true
       - key: APP_URL
         sync: false
+      
+      # Localization
+      - key: APP_LOCALE
+        value: en
+      - key: APP_FALLBACK_LOCALE
+        value: en
+      - key: APP_FAKER_LOCALE
+        value: en_US
+      
+      # App Maintenance
+      - key: APP_MAINTENANCE_DRIVER
+        value: file
+      
+      # PHP Settings
+      - key: PHP_CLI_SERVER_WORKERS
+        value: 4
+      - key: BCRYPT_ROUNDS
+        value: 12
+      
+      # Logging
       - key: LOG_CHANNEL
-        value: stderr
+        value: stack
+      - key: LOG_STACK
+        value: single
+      - key: LOG_DEPRECATIONS_CHANNEL
+        value: null
+      - key: LOG_LEVEL
+        value: debug
+      
+      # Database (PostgreSQL on Render)
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
-        value: postgresql://cursestock_user:aKP60RR6ZwzX6ddYtUOCbTGJj3lBYTmm@dpg-d0tcncadbo4c739hp6t0-a.frankfurt-postgres.render.com/cursestock
+        sync: false
+      
+      # Sessions
       - key: SESSION_DRIVER
-        value: database
-      - key: CACHE_DRIVER
         value: file
+      - key: SESSION_LIFETIME
+        value: 120
+      - key: SESSION_ENCRYPT
+        value: false
+      - key: SESSION_PATH
+        value: /
+      - key: SESSION_DOMAIN
+        value: null
+      
+      # Broadcasting, Filesystem, Queue
+      - key: BROADCAST_CONNECTION
+        value: log
+      - key: FILESYSTEM_DISK
+        value: local
       - key: QUEUE_CONNECTION
         value: sync
+      
+      # Cache
+      - key: CACHE_STORE
+        value: file
+      - key: CACHE_DRIVER
+        value: file
+      - key: MEMCACHED_HOST
+        value: 127.0.0.1
+      
+      # Redis (если будет использоваться)
+      - key: REDIS_CLIENT
+        value: phpredis
+      - key: REDIS_HOST
+        value: 127.0.0.1
+      - key: REDIS_PASSWORD
+        value: null
+      - key: REDIS_PORT
+        value: 6379
+      
+      # Mail Settings
+      - key: MAIL_MAILER
+        value: smtp
+      - key: MAIL_HOST
+        value: smtp.gmail.com
+      - key: MAIL_PORT
+        value: 587
+      - key: MAIL_USERNAME
+        sync: false
+      - key: MAIL_PASSWORD
+        sync: false
+      - key: MAIL_ENCRYPTION
+        value: tls
+      - key: MAIL_FROM_ADDRESS
+        value: mystickusa9@gmail.com
+      - key: MAIL_FROM_NAME
+        value: CurseStick
+      
+      # Vite
+      - key: VITE_APP_NAME
+        value: CruseStick
+      
+      # Stripe
+      - key: STRIPE_KEY
+        sync: false
+      - key: STRIPE_SECRET
+        sync: false
+      - key: CASHIER_CURRENCY
+        value: usd

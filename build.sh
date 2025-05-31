@@ -1,19 +1,29 @@
-#!/bin/bash
-# Build script для Laravel на Render.com
+#!/usr/bin/env bash
 
-# Установка зависимостей
-composer install --no-interaction --prefer-dist --optimize-autoloader
+# Exit on error
+set -e
 
-# Если у вас есть фронтенд (Vue, React и т.д.)
-if [ -f "package.json" ]; then
-    npm ci
-    npm run build
-fi
+echo "Installing PHP dependencies..."
+composer install --no-dev --optimize-autoloader
 
-# Миграции базы данных (если нужно)
-php artisan migrate --force
+echo "Installing Node.js dependencies..."
+npm install
 
-# Кэширование конфигурации
+echo "Building frontend assets..."
+npm run build
+
+echo "Running Laravel post-deployment tasks..."
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
+php artisan storage:link
+
+# Миграции базы данных
+# Раскомментируйте следующие строки, если нужно запустить миграции при деплое
+# echo "Running database migrations..."
+# php artisan migrate --force
+
+echo "Setting permissions..."
+chmod -R 775 storage bootstrap/cache
+
+echo "Build completed successfully!"

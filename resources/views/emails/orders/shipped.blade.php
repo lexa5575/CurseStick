@@ -130,10 +130,12 @@
                         <td style="border: 1px solid #ddd; padding: 8px 12px; text-align: left; vertical-align: middle;">
                             <div style="display: flex; align-items: center;">
                                 @php
-                                    // For production use this line
-                                    // $imageUrl = config('app.url') . '/' . $item->product->image_url;
-                                    // For development use a reliable placeholder
-                                    $imageUrl = 'https://picsum.photos/80/80?random=' . $item->product->id;
+                                    // Get full URL of the image for email
+                                    $imageUrl = $item->product->image_url;
+                                    // If it's a relative path, add the domain
+                                    if (!str_starts_with($imageUrl, 'http')) {
+                                        $imageUrl = config('app.url') . '/' . ltrim($imageUrl, '/');
+                                    }
                                 @endphp
                                 <img src="{{ $imageUrl }}" alt="{{ $item->product->name }}" style="width: 80px; height: auto; border-radius: 4px; border: 1px solid #eee;">
                                 <div style="margin-left: 10px;">

@@ -156,10 +156,12 @@
                         <td>
                             <div class="product-info">
                                 @php
-                                    // В продакшене используйте эту строку
-                                    // $imageUrl = config('app.url') . '/' . $item->product->image_url;
-                                    // Для разработки используем надежную заглушку
-                                    $imageUrl = 'https://picsum.photos/80/80?random=' . $item->product->id;
+                                    // Получаем полный URL изображения для email
+                                    $imageUrl = $item->product->image_url;
+                                    // Если это относительный путь, добавляем домен
+                                    if (!str_starts_with($imageUrl, 'http')) {
+                                        $imageUrl = config('app.url') . '/' . ltrim($imageUrl, '/');
+                                    }
                                 @endphp
                                 <img src="{{ $imageUrl }}" alt="{{ $item->product->name }}" class="product-image">
                                 <div class="product-details">
