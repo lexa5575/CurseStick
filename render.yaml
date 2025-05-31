@@ -1,10 +1,10 @@
 services:
   - type: web
     name: crusestick
-    runtime: php
+    runtime: docker
     plan: free
-    buildCommand: ./build.sh
-    startCommand: php artisan serve --host 0.0.0.0 --port $PORT
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     envVars:
       # App Settings
       - key: APP_NAME
@@ -18,6 +18,12 @@ services:
       - key: APP_URL
         sync: false
       
+      # Важно для Docker: Render будет устанавливать $PORT, Nginx слушает на 80
+      # Laravel должен генерировать URL с HTTPS, если APP_ENV=production
+      # Убедись, что в AppServiceProvider есть forceScheme('https') для production
+      - key: ASSET_URL
+        sync: false
+
       # Localization
       - key: APP_LOCALE
         value: en
@@ -30,15 +36,15 @@ services:
       - key: APP_MAINTENANCE_DRIVER
         value: file
       
-      # PHP Settings
-      - key: PHP_CLI_SERVER_WORKERS
-        value: 4
-      - key: BCRYPT_ROUNDS
-        value: 12
+      # PHP Settings (эти переменные могут не влиять на PHP-FPM напрямую, настройки PHP-FPM в его конфигах)
+      # - key: PHP_CLI_SERVER_WORKERS
+      #   value: 4 
+      # - key: BCRYPT_ROUNDS
+      #   value: 12
       
       # Logging
       - key: LOG_CHANNEL
-        value: stack
+        value: stderr
       - key: LOG_STACK
         value: single
       - key: LOG_DEPRECATIONS_CHANNEL
@@ -50,19 +56,19 @@ services:
       - key: DB_CONNECTION
         value: pgsql
       - key: DB_URL
-        sync: false
+        value: postgresql://cursestock_user:aKP60RR6ZwzX6ddYtUOCbTGJj3lBYTmm@dpg-d0tcncadbo4c739hp6t0-a.frankfurt-postgres.render.com/cursestock
       
       # Sessions
       - key: SESSION_DRIVER
         value: file
       - key: SESSION_LIFETIME
         value: 120
-      - key: SESSION_ENCRYPT
-        value: false
-      - key: SESSION_PATH
-        value: /
-      - key: SESSION_DOMAIN
-        value: null
+      # - key: SESSION_ENCRYPT
+      #   value: false
+      # - key: SESSION_PATH
+      #   value: /
+      # - key: SESSION_DOMAIN
+      #   value: null
       
       # Broadcasting, Filesystem, Queue
       - key: BROADCAST_CONNECTION
@@ -75,20 +81,20 @@ services:
       # Cache
       - key: CACHE_STORE
         value: file
-      - key: CACHE_DRIVER
-        value: file
-      - key: MEMCACHED_HOST
-        value: 127.0.0.1
+      # - key: CACHE_DRIVER
+      #   value: file
+      # - key: MEMCACHED_HOST
+      #   value: 127.0.0.1
       
       # Redis (если будет использоваться)
-      - key: REDIS_CLIENT
-        value: phpredis
-      - key: REDIS_HOST
-        value: 127.0.0.1
-      - key: REDIS_PASSWORD
-        value: null
-      - key: REDIS_PORT
-        value: 6379
+      # - key: REDIS_CLIENT
+      #   value: phpredis
+      # - key: REDIS_HOST
+      #   value: 127.0.0.1
+      # - key: REDIS_PASSWORD
+      #   value: null
+      # - key: REDIS_PORT
+      #   value: 6379
       
       # Mail Settings
       - key: MAIL_MAILER
@@ -96,9 +102,9 @@ services:
       - key: MAIL_HOST
         value: smtp.gmail.com
       - key: MAIL_PORT
-        value: 587
+        value: "587"
       - key: MAIL_USERNAME
-        sync: false
+        value: lexa5575@gmail.com
       - key: MAIL_PASSWORD
         sync: false
       - key: MAIL_ENCRYPTION
@@ -106,16 +112,46 @@ services:
       - key: MAIL_FROM_ADDRESS
         value: mystickusa9@gmail.com
       - key: MAIL_FROM_NAME
-        value: CurseStick
+        value: "CurseStick"
       
-      # Vite
+      # Vite (эти переменные используются при сборке фронтенда, они должны быть доступны на этапе frontend_builder)
+      # Для этого их нужно передавать как build args в Dockerfile или они должны быть в .env на момент сборки,
+      # Либо, если они нужны только в runtime JS, то они передаются через Blade/Inertia.
+      # Сейчас они останутся как envVars, доступные в runtime контейнера.
       - key: VITE_APP_NAME
-        value: CruseStick
+        value: "${APP_NAME}"
+      # - key: VITE_PUSHER_APP_KEY
+      #   sync: false
+      # - key: VITE_PUSHER_HOST
+      #   sync: false
+      # - key: VITE_PUSHER_PORT
+      #   sync: false
+      # - key: VITE_PUSHER_SCHEME
+      #   sync: false
+      # - key: VITE_PUSHER_APP_CLUSTER
+      #   sync: false
       
-      # Stripe
+      # Stripe (хранятся в секретах Render)
       - key: STRIPE_KEY
         sync: false
       - key: STRIPE_SECRET
         sync: false
       - key: CASHIER_CURRENCY
         value: usd
+
+    autoDeploy: true
+    healthCheckPath: /
+    # disk:
+    #   name: storage
+    #   mountPath: /var/www/html/storage
+    #   sizeGB: 1
+
+# Если у тебя есть база данных PostgreSQL, созданная на Render,
+# ее нужно будет связать с веб-сервисом.
+# Пример конфигурации базы данных (если еще не создана через UI Render):
+# databases:
+#   - name: твое-имя-базы-данных-на-render
+#     plan: free
+#     databaseName: имя_бд_внутри_pg
+#     user: имя_пользователя_бд
+#     # Пароль будет сгенерирован Render и доступен через переменные окружения
