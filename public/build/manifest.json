@@ -1,32 +1,35 @@
 {
-  "_index-xsH4HHeE.js": {
-    "file": "assets/index-xsH4HHeE.js",
-    "name": "index"
-  },
   "resources/css/app.css": {
-    "file": "assets/app-CGtzmVaP.css",
+    "file": "assets/app-BzJDnURM.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app-BCRPc28N.js",
+    "file": "assets/app-DEXYKqAG.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
-    "imports": [
-      "_index-xsH4HHeE.js"
+    "dynamicImports": [
+      "resources/js/vue/cart/CartPage.vue",
+      "resources/js/vue/cart/CheckoutPage.vue"
     ]
   },
-  "resources/js/vue/main.js": {
-    "file": "assets/main-DGBIaOTT.js",
-    "name": "main",
-    "src": "resources/js/vue/main.js",
-    "isEntry": true,
+  "resources/js/vue/cart/CartPage.vue": {
+    "file": "assets/CartPage-CyWZ5RZT.js",
+    "name": "CartPage",
+    "src": "resources/js/vue/cart/CartPage.vue",
+    "isDynamicEntry": true,
     "imports": [
-      "_index-xsH4HHeE.js"
-    ],
-    "css": [
-      "assets/main-DEeOqS9r.css"
+      "resources/js/app.js"
+    ]
+  },
+  "resources/js/vue/cart/CheckoutPage.vue": {
+    "file": "assets/CheckoutPage-02SdRSR_.js",
+    "name": "CheckoutPage",
+    "src": "resources/js/vue/cart/CheckoutPage.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/js/app.js"
     ]
   }
 }
