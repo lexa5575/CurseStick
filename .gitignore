@@ -15,7 +15,7 @@
 
 # Зависимости и сгенерированные файлы
 /node_modules
-/public/build
+# /public/build  # Закомментировано, чтобы отправлять собранные файлы в Git
 /vendor
 
 # Vite
