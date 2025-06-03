@@ -1,11 +1,11 @@
 {
   "resources/css/app.css": {
-    "file": "assets/app.css",
+    "file": "assets/app-BzJDnURM.css",
     "src": "resources/css/app.css",
     "isEntry": true
   },
   "resources/js/app.js": {
-    "file": "assets/app2.js",
+    "file": "assets/app-DEXYKqAG.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true,
@@ -15,7 +15,7 @@
     ]
   },
   "resources/js/vue/cart/CartPage.vue": {
-    "file": "assets/CartPage.js",
+    "file": "assets/CartPage-CyWZ5RZT.js",
     "name": "CartPage",
     "src": "resources/js/vue/cart/CartPage.vue",
     "isDynamicEntry": true,
@@ -24,7 +24,7 @@
     ]
   },
   "resources/js/vue/cart/CheckoutPage.vue": {
-    "file": "assets/CheckoutPage.js",
+    "file": "assets/CheckoutPage-02SdRSR_.js",
     "name": "CheckoutPage",
     "src": "resources/js/vue/cart/CheckoutPage.vue",
     "isDynamicEntry": true,
