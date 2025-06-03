@@ -7,7 +7,8 @@
     <title>{{ config('app.name', 'CruseStick') }}</title>
 
     <!-- Стили и скрипты -->
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
+    <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}">
+    <script type="module" src="{{ asset('build/assets/app2.js') }}"></script>
     
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
