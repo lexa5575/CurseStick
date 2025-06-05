@@ -3,10 +3,10 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Spatie\MediaLibrary\HasMedia;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Product extends Model
 {
@@ -19,6 +19,7 @@ class Product extends Model
      */
     protected $fillable = [
         'name',
+        'slug',
         'description',
         'price',
         'is_active',
@@ -46,6 +47,39 @@ class Product extends Model
      * @var array<int, string>
      */
     protected $appends = ['image_url'];
+
+    /**
+     * Get the route key for the model.
+     *
+     * @return string
+     */
+    public function getRouteKeyName()
+    {
+        return 'slug';
+    }
+
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::saving(function ($product) {
+            if ($product->isDirty('name') || empty($product->slug)) {
+                $slug = Str::slug($product->name, '-');
+                $originalSlug = $slug;
+                $count = 1;
+
+                while (static::where('slug', $slug)->when($product->exists, function ($query) use ($product) {
+                    return $query->where('id', '!=', $product->id);
+                })->exists()) {
+                    $slug = $originalSlug . '-' . $count++;
+                }
+                $product->slug = $slug;
+            }
+        });
+    }
 
     public function category()
     {
