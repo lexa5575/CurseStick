@@ -16,7 +16,7 @@
                 <a href="{{ route('products.show', $product) }}" class="block">
                     <div class="relative h-48 overflow-hidden">
                         <img src="{{ $product->image_url ?? asset('images/placeholders/product-placeholder.jpg') }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
-                        @if($product->discount)
+                        @if((float)$product->discount > 0)
                         <div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
                             -{{ number_format($product->discount / $product->price * 100) }}%
                         </div>
@@ -29,7 +29,7 @@
                     </a>
                     <div class="flex justify-between items-center">
                         <div>
-                            @if($product->discount)
+                            @if((float)$product->discount > 0)
                             <span class="text-gray-400 line-through text-sm">{{ number_format($product->price, 2) }} $</span>
                             <span class="text-lg font-bold text-red-600">{{ number_format($product->price - $product->discount, 2) }} $</span>
                             @else

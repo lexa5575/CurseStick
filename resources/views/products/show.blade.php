@@ -17,7 +17,7 @@
                 <h1 class="mt-2 text-3xl font-bold text-gray-900">{{ $product->name }}</h1>
                 
                 <div class="mt-4">
-                    @if($product->discount)
+                    @if((float)$product->discount > 0)
                         <span class="text-gray-400 line-through text-lg">{{ number_format($product->price, 2) }} $</span>
                         <span class="text-2xl font-bold text-red-600 ml-2">{{ number_format($product->price - $product->discount, 2) }} $</span>
                         <span class="ml-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
@@ -100,7 +100,7 @@
                 <a href="{{ route('products.show', $relatedProduct) }}">
                     <div class="relative h-48 overflow-hidden">
                         <img src="{{ $relatedProduct->image_url }}" alt="{{ $relatedProduct->name }}" class="w-full h-full object-cover">
-                        @if($relatedProduct->discount)
+                        @if((float)$relatedProduct->discount > 0)
                         <div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
                             -{{ number_format($relatedProduct->discount / $relatedProduct->price * 100) }}%
                         </div>
@@ -113,7 +113,7 @@
                     </a>
                     <div class="flex justify-between items-center">
                         <div>
-                            @if($relatedProduct->discount)
+                            @if((float)$relatedProduct->discount > 0)
                             <span class="text-gray-400 line-through text-sm">{{ number_format($relatedProduct->price, 2) }} $</span>
                             <span class="text-lg font-bold text-red-600">{{ number_format($relatedProduct->price - $relatedProduct->discount, 2) }} $</span>
                             @else
