@@ -85,7 +85,7 @@ Route::prefix('api/cart')->group(function () {
     Route::get('/', [ApiCartController::class, 'index']);
     
     // Добавить товар в корзину
-    Route::post('/add/{product}', [ApiCartController::class, 'add']);
+    Route::post('/add/{productId}', [ApiCartController::class, 'add']);
 
     // Обновить количество товара
     Route::patch('/items/{itemId}', [ApiCartController::class, 'update']);

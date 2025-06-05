@@ -85,11 +85,13 @@ class CartController extends Controller
 
     /**
      * Добавить товар в корзину
-     * Маршрут: POST /api/cart/add/{product}
+     * Маршрут: POST /api/cart/add/{productId}
      */
-    public function add(Product $product, Request $request)
+    public function add($productId, Request $request)
     {
         try {
+            $product = Product::findOrFail($productId);
+
             // Валидация количества товара
             $quantity = (int) $request->input('quantity', 1);
             if ($quantity < 1) {
