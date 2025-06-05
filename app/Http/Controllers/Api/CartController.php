@@ -37,15 +37,16 @@ class CartController extends Controller
         $cart = $this->getCart();
         $items = [];
         $total = 0;
-        
+        $count = 0;
+
         // Подготавливаем cookie для ответа
         $cookie = null;
         if ($cart) {
             $cookie = cookie()->forever('cruisestick_cart_id', $cart->id);
-        }
 
-        if ($cart) {
             $cartItems = $cart->items()->with('itemable')->get();
+
+            $count = $cart->items()->sum('quantity');
 
             foreach ($cartItems as $item) {
                 if ($item->itemable instanceof Product) {
@@ -76,11 +77,17 @@ class CartController extends Controller
             }
         }
 
-        return response()->json([
+        $response = response()->json([
             'items' => $items,
             'total' => (float) $total,
-            'count' => count($items)
+            'count' => (int) $count
         ]);
+
+        if ($cookie) {
+            $response->withCookie($cookie);
+        }
+
+        return $response;
     }
 
     /**
