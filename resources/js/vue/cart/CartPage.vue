@@ -178,37 +178,74 @@ onMounted(() => {
     <div v-else class="flex flex-col md:flex-row gap-6">
       <!-- Список товаров -->
       <div class="md:w-2/3 w-full">
-        <div v-for="item in cartItems" :key="item.id" class="flex items-center p-4 border-b border-gray-200 gap-4">
-          <div class="flex-shrink-0">
-            <img :src="item.product.image_url" :alt="item.product.name" class="w-20 h-20 object-cover rounded">
+        <div v-for="item in cartItems" :key="item.id" class="border-b border-gray-200 p-4">
+          <!-- Мобильный layout -->
+          <div class="md:hidden">
+            <div class="flex items-start gap-3">
+              <!-- Изображение и информация о товаре -->
+              <div class="flex-shrink-0">
+                <img :src="item.product.image_url" :alt="item.product.name" class="w-16 h-16 object-cover rounded">
+              </div>
+              <div class="flex-1">
+                <h3 class="font-medium text-sm">{{ item.product.name }}</h3>
+                <p class="text-xs text-gray-500">{{ item.product.category.name }}</p>
+                <p class="font-medium text-sm mt-1">{{ item.price.toFixed(2) }} $</p>
+              </div>
+              <!-- Кнопка удаления для мобильных -->
+              <button @click="removeItem(item.id)" class="text-red-500 hover:text-red-700 text-xl p-1">
+                <span>&times;</span>
+              </button>
+            </div>
+            <!-- Количество и итоговая цена для мобильных -->
+            <div class="flex items-center justify-between mt-3">
+              <div class="flex items-center">
+                <button @click="decreaseQuantity(item.id)" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded">
+                  <span>-</span>
+                </button>
+                <span class="w-12 text-center">{{ item.quantity }}</span>
+                <button @click="increaseQuantity(item.id)" class="w-8 h-8 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded">
+                  <span>+</span>
+                </button>
+              </div>
+              <div class="font-medium">
+                Total: {{ (item.price * item.quantity).toFixed(2) }} $
+              </div>
+            </div>
           </div>
           
-          <div class="flex-1">
-            <h3 class="font-medium">{{ item.product.name }}</h3>
-            <p class="text-xs text-gray-500">{{ item.product.category.name }}</p>
-          </div>
-          
-          <div class="font-medium">
-            {{ item.price.toFixed(2) }} $
-          </div>
-          
-          <div class="flex items-center">
-            <button @click="decreaseQuantity(item.id)" class="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded">
-              <span>-</span>
+          <!-- Десктопный layout -->
+          <div class="hidden md:flex items-center gap-4">
+            <div class="flex-shrink-0">
+              <img :src="item.product.image_url" :alt="item.product.name" class="w-20 h-20 object-cover rounded">
+            </div>
+            
+            <div class="flex-1">
+              <h3 class="font-medium">{{ item.product.name }}</h3>
+              <p class="text-xs text-gray-500">{{ item.product.category.name }}</p>
+            </div>
+            
+            <div class="font-medium">
+              {{ item.price.toFixed(2) }} $
+            </div>
+            
+            <div class="flex items-center">
+              <button @click="decreaseQuantity(item.id)" class="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded">
+                <span>-</span>
+              </button>
+              <span class="w-8 text-center">{{ item.quantity }}</span>
+              <button @click="increaseQuantity(item.id)" class="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded">
+                <span>+</span>
+              </button>
+            </div>
+            
+            <div class="font-medium">
+              {{ (item.price * item.quantity).toFixed(2) }} $
+            </div>
+            
+            <button @click="removeItem(item.id)" class="text-red-500 hover:text-red-700 text-xl">
+              <span>&times;</span>
             </button>
-            <span class="w-8 text-center">{{ item.quantity }}</span>
-            <button @click="increaseQuantity(item.id)" class="w-6 h-6 flex items-center justify-center bg-gray-100 hover:bg-gray-200 rounded">
-              <span>+</span>
-            </button>
           </div>
-          
-          <div class="font-medium">
-            {{ (item.price * item.quantity).toFixed(2) }} $
-          </div>
-          
-          <button @click="removeItem(item.id)" class="text-red-500 hover:text-red-700 text-xl">
-            <span>&times;</span>
-          </button>
         </div>
       </div>
       
