@@ -83,4 +83,4 @@
 @endsection
 
 <!-- Подключение компонента корзины -->
-<script src="{{ asset('js/cartHandler.js') }}"></script>
+<script src="{{ asset('js/cartHandler.js') }}" defer></script>

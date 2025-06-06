@@ -48,8 +48,16 @@ document.addEventListener('alpine:init', () => {
                 }
                 
                 // Показываем соответствующее уведомление
-                // Всегда показываем всплывающее уведомление на английском
-                this.showFloatingNotification('Product added to cart!');
+                if (isMainProduct) {
+                    // Для основного товара - встроенное уведомление
+                    this.showSuccess = true;
+                    setTimeout(() => {
+                        this.showSuccess = false;
+                    }, 3000);
+                } else {
+                    // Для похожих товаров и других страниц - всплывающее уведомление
+                    this.showFloatingNotification('Product added to cart!');
+                }
             } catch (error) {
                 console.error('Ошибка при добавлении товара в корзину:', error);
                 this.showFloatingNotification('Произошла ошибка при добавлении товара в корзину. Пожалуйста, попробуйте еще раз.', 'error');
@@ -61,33 +69,27 @@ document.addEventListener('alpine:init', () => {
         
         // Метод для показа всплывающего уведомления
         showFloatingNotification(message, type = 'success') {
-            const container = document.getElementById('notification-container');
-            if (!container) {
-                console.error('The #notification-container element was not found in the DOM.');
-                return;
-            }
-
-            // Создаем само уведомление
             const notification = document.createElement('div');
-            notification.classList.add('p-4', 'rounded-lg', 'shadow-xl', 'text-white', 'font-semibold');
+            const notificationId = Date.now();
+            
+            notification.id = `notification-${notificationId}`;
+            notification.style.cssText = 'position: fixed; bottom: 20px; right: 20px; padding: 16px 24px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); font-weight: 600; z-index: 9999;';
             
             if (type === 'error') {
-                notification.classList.add('bg-red-500');
+                notification.style.backgroundColor = '#ef4444';
+                notification.style.color = 'white';
             } else {
-                notification.classList.add('bg-green-500');
+                notification.style.backgroundColor = '#10b981';
+                notification.style.color = 'white';
             }
+            
             notification.textContent = message;
-
-            // Очищаем контейнер от старых уведомлений и добавляем новое
-            container.innerHTML = '';
-            container.appendChild(notification);
+            document.body.appendChild(notification);
             
             // Удаляем уведомление через 3 секунды
             setTimeout(() => {
-                // Убедимся, что удаляем именно то уведомление, которое мы создали
-                if (container.contains(notification)) {
-                    container.removeChild(notification);
-                }
+                const element = document.getElementById(`notification-${notificationId}`);
+                if (element) element.remove();
             }, 3000);
         }
     }));
