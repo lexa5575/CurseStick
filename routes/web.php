@@ -99,3 +99,21 @@ Route::prefix('api/checkout')->group(function () {
     // Обработать оформление заказа
     Route::post('/process', [CheckoutController::class, 'process']);
 });
+
+// Payment routes
+use App\Http\Controllers\PaymentController;
+
+Route::prefix('payment')->name('payment.')->group(function () {
+    // Create crypto payment
+    Route::post('/crypto', [PaymentController::class, 'createCryptoPayment'])->name('crypto.create');
+    
+    // IPN callback (exclude from CSRF protection)
+    Route::post('/ipn', [PaymentController::class, 'handleIPN'])->name('ipn')->withoutMiddleware('web');
+    
+    // Success/Cancel pages
+    Route::get('/success', [PaymentController::class, 'paymentSuccess'])->name('success');
+    Route::get('/cancel', [PaymentController::class, 'paymentCancel'])->name('cancel');
+    
+    // Get available currencies
+    Route::get('/currencies', [PaymentController::class, 'getAvailableCurrencies'])->name('currencies');
+});

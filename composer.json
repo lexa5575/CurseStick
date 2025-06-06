@@ -10,6 +10,7 @@
         "binafy/laravel-cart": "^1.2",
         "doctrine/dbal": "^4.2",
         "filament/filament": "^3.0",
+        "guzzlehttp/guzzle": "^7.9",
         "inertiajs/inertia-laravel": "^2.0",
         "laravel/cashier": "^15.6",
         "laravel/framework": "^12.0",

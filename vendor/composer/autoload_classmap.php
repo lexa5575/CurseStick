@@ -12,6 +12,8 @@ return array(
     'AnourValar\\EloquentSerialize\\Grammars\\QueryBuilderGrammar' => $vendorDir . '/anourvalar/eloquent-serialize/src/Grammars/QueryBuilderGrammar.php',
     'AnourValar\\EloquentSerialize\\Package' => $vendorDir . '/anourvalar/eloquent-serialize/src/Package.php',
     'AnourValar\\EloquentSerialize\\Service' => $vendorDir . '/anourvalar/eloquent-serialize/src/Service.php',
+    'App\\Console\\Commands\\GenerateCategorySlugs' => $baseDir . '/app/Console/Commands/GenerateCategorySlugs.php',
+    'App\\Console\\Commands\\GenerateProductSlugs' => $baseDir . '/app/Console/Commands/GenerateProductSlugs.php',
     'App\\Filament\\Resources\\BannerResource' => $baseDir . '/app/Filament/Resources/BannerResource.php',
     'App\\Filament\\Resources\\BannerResource\\Pages\\CreateBanner' => $baseDir . '/app/Filament/Resources/BannerResource/Pages/CreateBanner.php',
     'App\\Filament\\Resources\\BannerResource\\Pages\\EditBanner' => $baseDir . '/app/Filament/Resources/BannerResource/Pages/EditBanner.php',

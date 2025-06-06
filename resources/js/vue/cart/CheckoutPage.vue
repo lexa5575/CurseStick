@@ -105,17 +105,28 @@ const submitForm = async () => {
     if (response.data.success) {
       successMessage.value = response.data.message || 'Order successfully placed!';
       
-      const redirectUrl = response.data.redirect_url || `/orders/${response.data.order_id}/confirmation`;
-      
-      setTimeout(() => {
-        window.location.href = redirectUrl;
-      }, 1500);
+      // Проверяем, если это крипто-платеж с URL для перенаправления
+      if (response.data.payment_type === 'crypto' && response.data.redirect_url) {
+        successMessage.value = 'Redirecting to payment page...';
+        
+        // Перенаправляем на страницу оплаты NOWPayments
+        setTimeout(() => {
+          window.location.href = response.data.redirect_url;
+        }, 1000);
+      } else {
+        // Стандартное перенаправление на страницу подтверждения
+        const redirectUrl = response.data.redirect_url || `/orders/${response.data.order_id}/confirmation`;
+        
+        setTimeout(() => {
+          window.location.href = redirectUrl;
+        }, 1500);
+      }
     }
   } catch (err) {
     if (err.response && err.response.status === 422) {
       validationErrors.value = err.response.data.errors || {};
     } else {
-      errorMessage.value = 'An error occurred while processing your order. Please try again.';
+      errorMessage.value = err.response?.data?.message || 'An error occurred while processing your order. Please try again.';
     }
   } finally {
     isSubmitting.value = false;

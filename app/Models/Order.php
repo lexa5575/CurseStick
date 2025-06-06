@@ -26,6 +26,7 @@ class Order extends Model
         'comment',
         'payment_method',
         'payment_status',
+        'payment_invoice_id',
         // tracking_number удалён
     ];
 

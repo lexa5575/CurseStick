@@ -11,6 +11,7 @@ use App\Models\OrderStatusHistory;
 use App\Models\Product;
 use App\Notifications\OrderConfirmation;
 use App\Notifications\AdminOrderNotification;
+use App\Services\NOWPaymentsService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -21,6 +22,13 @@ use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
 {
+    protected $nowPaymentsService;
+
+    public function __construct(NOWPaymentsService $nowPaymentsService)
+    {
+        $this->nowPaymentsService = $nowPaymentsService;
+    }
+
     /**
      * Получить данные для формы оформления заказа
      * Маршрут: GET /api/checkout/data
@@ -137,10 +145,19 @@ class CheckoutController extends Controller
             // Начинаем транзакцию
             DB::beginTransaction();
 
+            // Определяем начальный статус заказа в зависимости от способа оплаты
+            $orderStatus = 'Новый';
+            $paymentStatus = 'pending';
+            
+            if ($request->payment_method === 'crypto') {
+                $orderStatus = 'Ожидает оплаты';
+                $paymentStatus = 'waiting';
+            }
+
             // Создаем заказ
             $order = new Order([
                 'user_id' => Auth::check() ? Auth::id() : null,
-                'status' => 'Новый',
+                'status' => $orderStatus,
                 'total' => $cart->items()->sum(DB::raw('price * quantity')),
                 // Сохраняем все компоненты адреса в соответствующие поля
                 'company' => $request->company,
@@ -155,7 +172,7 @@ class CheckoutController extends Controller
                 'name' => $request->name,
                 'comment' => $request->comment,
                 'payment_method' => $request->payment_method ?? 'none', // Обновлено с paymentMethod на payment_method
-                'payment_status' => 'pending'
+                'payment_status' => $paymentStatus
             ]);
             
             $order->save();
@@ -177,17 +194,62 @@ class CheckoutController extends Controller
             // Добавляем первую запись в историю статусов
             $statusHistory = new OrderStatusHistory([
                 'order_id' => $order->id,
-                'status' => 'Новый',
+                'status' => $orderStatus,
             ]);
             $statusHistory->save();
 
+            // Если выбрана оплата криптовалютой, создаем инвойс через NOWPayments
+            if ($request->payment_method === 'crypto') {
+                try {
+                    $invoice = $this->nowPaymentsService->createInvoice([
+                        'price_amount' => $order->total,
+                        'price_currency' => 'USD',
+                        'order_id' => (string)$order->id,
+                        'order_description' => 'Order #' . $order->id . ' from CruseStick Store',
+                        'callback_url' => route('payment.ipn'),
+                        'success_url' => route('payment.success', ['order_id' => $order->id]),
+                        'cancel_url' => route('payment.cancel', ['order_id' => $order->id]),
+                    ]);
+
+                    // Сохраняем ID инвойса в заказе для отслеживания
+                    $order->payment_invoice_id = $invoice['id'] ?? null;
+                    $order->save();
+
+                    // Очищаем корзину
+                    $cart->items()->delete();
+                    
+                    // Фиксируем транзакцию
+                    DB::commit();
+
+                    // Возвращаем URL для перенаправления на страницу оплаты
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Redirecting to payment page...',
+                        'order_id' => (string)$order->id,
+                        'redirect_url' => $invoice['invoice_url'],
+                        'payment_type' => 'crypto'
+                    ]);
+                    
+                } catch (\Exception $paymentException) {
+                    // Если не удалось создать инвойс, откатываем транзакцию
+                    DB::rollBack();
+                    
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Failed to create payment invoice. Please try again.',
+                        'error' => $paymentException->getMessage()
+                    ], 500);
+                }
+            }
+
+            // Для других способов оплаты - стандартная обработка
             // Очищаем корзину
             $cart->items()->delete();
             
             // Если все успешно, фиксируем транзакцию
             DB::commit();
             
-            // Отправляем уведомление клиенту
+            // Отправляем уведомление клиенту (только для не-крипто платежей)
             try {
                 if ($order->email) {
                     Notification::route('mail', $order->email)
