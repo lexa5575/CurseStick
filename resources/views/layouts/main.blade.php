@@ -29,6 +29,23 @@
             background-color: #f3f4f6;
             color: #1d4ed8;
         }
+        
+        /* Анимация пульсации для счётчика корзины */
+        @keyframes pulse-scale {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.3);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+        
+        .cart-counter-pulse {
+            animation: pulse-scale 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body class="min-h-screen bg-gray-50 flex flex-col">

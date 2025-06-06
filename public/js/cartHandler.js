@@ -40,12 +40,20 @@ document.addEventListener('alpine:init', () => {
                 
                 const data = await response.json();
                 
-                // Обновляем счетчик корзины, если он есть на странице
-                const cartCounter = document.querySelector('.cart-counter');
-                if (cartCounter) {
-                    cartCounter.textContent = data.count;
-                    cartCounter.classList.remove('hidden');
-                }
+                // Обновляем все счетчики корзины на странице с анимацией
+                const cartCounters = document.querySelectorAll('.cart-counter');
+                cartCounters.forEach(counter => {
+                    counter.textContent = data.count;
+                    counter.classList.remove('hidden');
+                    
+                    // Добавляем анимацию пульсации
+                    counter.classList.add('cart-counter-pulse');
+                    
+                    // Удаляем класс анимации после её завершения
+                    setTimeout(() => {
+                        counter.classList.remove('cart-counter-pulse');
+                    }, 300);
+                });
                 
                 // Показываем соответствующее уведомление
                 if (isMainProduct) {

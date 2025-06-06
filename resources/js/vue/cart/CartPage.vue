@@ -125,7 +125,7 @@ const updateCartCounter = () => {
     detail: { count: newCount }
   }));
   
-  // Прямое обновление счетчика корзины в DOM
+  // Прямое обновление счетчика корзины в DOM с анимацией
   const cartCounters = document.querySelectorAll('.cart-counter');
   cartCounters.forEach(counter => {
     counter.textContent = newCount;
@@ -134,6 +134,14 @@ const updateCartCounter = () => {
     } else {
       counter.classList.add('hidden');
     }
+    
+    // Добавляем анимацию пульсации
+    counter.classList.add('cart-counter-pulse');
+    
+    // Удаляем класс анимации после её завершения
+    setTimeout(() => {
+      counter.classList.remove('cart-counter-pulse');
+    }, 300);
   });
 };
 
