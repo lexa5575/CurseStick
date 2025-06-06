@@ -96,7 +96,7 @@
     @if($relatedProducts && $relatedProducts->count() > 0)
     <div class="mt-12">
         <h2 class="text-2xl font-bold mb-6">Related Products</h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div x-data="cartHandler" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             @foreach($relatedProducts as $relatedProduct)
             <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                 <a href="{{ route('products.show', $relatedProduct) }}">
@@ -125,7 +125,6 @@
                         <button 
                             type="button"
                             class="bg-blue-500 hover:bg-blue-600 text-white rounded-full p-2 transition-colors"
-                            x-data="cartHandler"
                             x-on:click="addToCart({{ $relatedProduct->id }}, 1)"
                             x-bind:disabled="loading"
                             x-bind:class="{'opacity-50': loading}"
@@ -145,4 +144,4 @@
 @endsection
 
 <!-- Подключение компонента корзины -->
-<script src="{{ asset('js/cartHandler.js') }}"></script>
+<script src="{{ asset('js/cartHandler.js') }}" defer></script>

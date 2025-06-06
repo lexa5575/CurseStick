@@ -31,7 +31,7 @@
         }
     </style>
 </head>
-<body class="min-h-screen bg-gray-50">
+<body class="min-h-screen bg-gray-50 flex flex-col">
     <!-- Шапка сайта -->
     <header class="bg-white shadow">
         <div class="container mx-auto px-4 py-4">
@@ -103,7 +103,7 @@
 
 
     <!-- Основное содержимое -->
-    <main>
+    <main class="flex-grow">
         @yield('content')
         @if(isset($content))
             {!! $content !!}
@@ -143,9 +143,6 @@
             </div>
         </div>
     </footer>
-
-    <!-- Глобальный контейнер для уведомлений -->
-    <div id="notification-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
 
     <!-- Alpine.js уже обрабатывает все необходимые интеракции для выпадающего меню -->
 
