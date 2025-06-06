@@ -43,14 +43,14 @@
 
                 <!-- Навигация -->
                 <nav class="hidden md:flex items-center space-x-4">
-                    <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Главная</a>
+                    <a href="{{ route('home') }}" class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}">Home</a>
 
                     <!-- Выпадающее меню категорий -->
                     <div class="relative" x-data="{ open: false }">
                         <a href="{{ route('categories.index') }}"
                            @mouseenter="open = true"
                            class="nav-link {{ request()->routeIs('categories.index') ? 'active' : '' }} flex items-center">
-                            <span>Категории</span>
+                            <span>Categories</span>
                             <svg class="ml-1 h-3 w-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
                                 <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
                             </svg>
@@ -80,7 +80,7 @@
 
                     <!-- Ссылка на корзину с счетчиком -->
                     <a href="{{ route('cart.index') }}" class="nav-link {{ request()->routeIs('cart.index') ? 'active' : '' }} flex items-center">
-                        <span class="mr-1">Корзина</span>
+                        <span class="mr-1">Cart</span>
                         <div class="relative">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -116,50 +116,34 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- О нас -->
                 <div>
-                    <h3 class="text-lg font-semibold mb-4">О нас</h3>
-                    <p class="text-gray-400">CruseStick - интернет-магазин качественных товаров по доступным ценам. Широкий ассортимент для всей семьи.</p>
+                    <h3 class="text-lg font-semibold mb-4">About Us</h3>
+                    <p class="text-gray-400">CruseStick - an online store of quality products at affordable prices. A wide range of products.</p>
                 </div>
 
                 <!-- Информация -->
                 <div>
-                    <h3 class="text-lg font-semibold mb-4">Информация</h3>
+                    <h3 class="text-lg font-semibold mb-4">Information</h3>
                     <ul class="space-y-2">
-                        <li><a href="#" class="footer-link">Доставка и оплата</a></li>
-                        <li><a href="#" class="footer-link">Возврат товаров</a></li>
-                        <li><a href="#" class="footer-link">Условия использования</a></li>
-                        <li><a href="#" class="footer-link">Политика конфиденциальности</a></li>
+                        <li><a href="#" class="footer-link">Shipping & Payment</a></li>
+                        <li><a href="#" class="footer-link">Returns</a></li>
                     </ul>
                 </div>
 
                 <!-- Контакты -->
                 <div>
-                    <h3 class="text-lg font-semibold mb-4">Контакты</h3>
+                    <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
                     <ul class="space-y-2">
-                        <li class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                            </svg>
-                            <span class="text-gray-400">+7 (123) 456-78-90</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                            </svg>
-                            <span class="text-gray-400">info@crusestick.com</span>
-                        </li>
-                        <li class="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                            </svg>
-                            <span class="text-gray-400">г. Москва, ул. Примерная, д. 123</span>
+                        <li>
+                            <a href="#" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                                Contact Us
+                            </a>
                         </li>
                     </ul>
                 </div>
             </div>
 
             <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
-                <p>© {{ date('Y') }} CruseStick. Все права защищены.</p>
+                <p>© {{ date('Y') }} CruseStick. All rights reserved.</p>
             </div>
         </div>
     </footer>
