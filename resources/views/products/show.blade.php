@@ -1,5 +1,7 @@
 @extends('layouts.main')
 
+@section('title', $product->name)
+
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <div class="bg-white rounded-lg shadow-lg overflow-hidden">

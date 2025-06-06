@@ -1,5 +1,7 @@
 @extends('layouts.main')
 
+@section('title', 'CruseStick')
+
 @section('content')
 <!-- Баннер-слайдер -->
 @include('partials.banner-slider')
