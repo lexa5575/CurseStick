@@ -53,10 +53,7 @@ EOD;
 
 // Оформление заказа (рендерится Vue-компонентом в будущем)
 Route::get('/checkout', function() {
-    // Используем главный шаблон с контейнером для Vue
-    return view('layouts.main', [
-        'content' => '<div class="container mx-auto px-4 py-6"><div id="checkout-page" data-vue-component="checkout-page"></div></div>'
-    ]);
+    return view('checkout');
 })->name('cart.checkout.form');
 
 // Обработка заказа перенесена в API (/api/cart/checkout)
