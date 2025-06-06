@@ -7,7 +7,7 @@
 <div class="container mx-auto px-4 py-8">
     <!-- Категории товаров -->
     <div class="mb-12">
-        <h2 class="text-2xl font-bold mb-6">Популярные категории</h2>
+        <h2 class="text-2xl font-bold mb-6">Popular Categories</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             @foreach($categories as $category)
             <a href="{{ route('categories.show', $category) }}" class="group">
@@ -26,7 +26,7 @@
     
     <!-- Популярные товары -->
     <div>
-        <h2 class="text-2xl font-bold mb-6">Популярные товары</h2>
+        <h2 class="text-2xl font-bold mb-6">Featured Products</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             @foreach($featuredProducts as $product)
             <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
@@ -56,7 +56,7 @@
                         <button 
                             type="button"
                             class="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-full transition-colors"
-                            title="Добавить в корзину"
+                            title="Add to Cart"
                             x-data="cartHandler"
                             x-on:click="addToCart({{ $product->id }}, 1)"
                             x-bind:disabled="loading"

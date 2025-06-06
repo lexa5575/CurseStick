@@ -56,8 +56,8 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 mx-auto text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
-                <h3 class="text-xl font-semibold text-gray-500">В этой категории пока нет товаров</h3>
-                <p class="text-gray-500 mt-2">Загляните позже или посмотрите другие категории</p>
+                <h3 class="text-xl font-semibold text-gray-500">There are no products in this category yet</h3>
+                <p class="text-gray-500 mt-2">Check back later or browse other categories</p>
             </div>
             @endforelse
         </div>
@@ -66,12 +66,12 @@
     <!-- Другие категории -->
     @if($otherCategories && $otherCategories->count() > 0)
     <div class="mb-12">
-        <h2 class="text-2xl font-bold mb-6">Другие категории</h2>
+        <h2 class="text-2xl font-bold mb-6">Other Categories</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             @foreach($otherCategories as $otherCategory)
             <a href="{{ route('categories.show', $otherCategory) }}" class="bg-white rounded-lg shadow-md p-4 text-center hover:shadow-lg transition-shadow">
                 <h3 class="font-semibold">{{ $otherCategory->name }}</h3>
-                <p class="text-sm text-gray-500 mt-1">{{ $otherCategory->products_count }} товаров</p>
+                <p class="text-sm text-gray-500 mt-1">{{ $otherCategory->products_count }} products</p>
             </a>
             @endforeach
         </div>

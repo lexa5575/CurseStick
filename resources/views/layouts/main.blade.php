@@ -133,11 +133,7 @@
                 <div>
                     <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
                     <ul class="space-y-2">
-                        <li>
-                            <a href="#" class="inline-block bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
-                                Contact Us
-                            </a>
-                        </li>
+                        <li><a href="#" class="footer-link">Get in Touch</a></li>
                     </ul>
                 </div>
             </div>

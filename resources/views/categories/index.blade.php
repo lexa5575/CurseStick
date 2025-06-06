@@ -4,7 +4,7 @@
 <div class="container mx-auto px-4 py-8">
     <!-- Заголовок страницы -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold mb-2">Все категории</h1>
+        <h1 class="text-3xl font-bold mb-2">All Categories</h1>
         <p class="text-gray-600">Выберите категорию, чтобы просмотреть товары</p>
     </div>
     

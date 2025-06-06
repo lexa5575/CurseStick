@@ -2,9 +2,7 @@
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 
-
-
-// Состояние
+// State
 const isLoading = ref(true);
 const error = ref(null);
 const cartItems = ref([]);
@@ -13,39 +11,37 @@ const formData = ref({
   email: '',
   phone: '',
   company: '',
-  street: '', // Изменено с 'address' на 'street'
-  house: '', // Изменено с 'addressUnit' на 'house'
+  street: '',
+  house: '',
   city: '',
   state: '',
-  postal_code: '', // Изменено с 'zipcode' на 'postal_code'
-  country: 'United States', // По умолчанию United States
+  postal_code: '',
+  country: 'United States',
   comment: '',
-  payment_method: '', // Изменено с 'paymentMethod' на 'payment_method'
-  ageVerified: false // Подтверждение возраста 21+
+  payment_method: '',
+  ageVerified: false
 });
 
-// Сообщения
+// Messages
 const successMessage = ref('');
 const errorMessage = ref('');
 
-// Вычисляемые свойства
+// Computed Properties
 const subtotal = computed(() => {
   return cartItems.value.reduce((total, item) => {
     return total + (item.price * item.quantity);
   }, 0);
 });
 
-// Состояние валидации
+// Validation State
 const isSubmitting = ref(false);
 const validationErrors = ref({});
 
-// Функция валидации формы
+// Form validation function
 const validateForm = () => {
-  // Сбрасываем предыдущие ошибки
   validationErrors.value = {};
   let isValid = true;
   
-  // Check required fields
   if (!formData.value.name.trim()) {
     validationErrors.value.name = 'Name is required';
     isValid = false;
@@ -60,7 +56,7 @@ const validateForm = () => {
   }
   
   if (!formData.value.street.trim()) {
-    validationErrors.value.street = 'Address is required';
+    validationErrors.value.street = 'Street address is required';
     isValid = false;
   }
   
@@ -75,7 +71,17 @@ const validateForm = () => {
   }
   
   if (!formData.value.postal_code.trim()) {
-    validationErrors.value.postal_code = 'Zipcode is required';
+    validationErrors.value.postal_code = 'ZIP / Postal code is required';
+    isValid = false;
+  }
+  
+  if (!formData.value.payment_method) {
+    validationErrors.value.payment_method = 'Please select a payment method';
+    isValid = false;
+  }
+
+  if (!formData.value.ageVerified) {
+    validationErrors.value.ageVerified = 'You must confirm you are at least 21 years old to continue.';
     isValid = false;
   }
   
@@ -84,25 +90,10 @@ const validateForm = () => {
 
 // Form submission function
 const submitForm = async () => {
-  // Reset previous messages
   errorMessage.value = '';
   successMessage.value = '';
   
-  // Validate the form
   if (!validateForm()) {
-    // Don't show general error message, individual field errors will be shown
-    return;
-  }
-  
-  // Check payment method selection
-  if (!formData.value.payment_method) {
-    validationErrors.value.payment_method = 'Please select a payment method';
-    isValid = false;
-  }
-
-  // Check age verification
-  if (!formData.value.ageVerified) {
-    validationErrors.value.ageVerified = 'You must confirm that you are at least 21 years old to continue';
     return;
   }
   
@@ -114,13 +105,8 @@ const submitForm = async () => {
     if (response.data.success) {
       successMessage.value = response.data.message || 'Order successfully placed!';
       
-      // Redirect to the order confirmation page
-      // Используем прямой URL из ответа API, если он есть, или строим его из orderId
       const redirectUrl = response.data.redirect_url || `/orders/${response.data.order_id}/confirmation`;
       
-      console.log('Redirecting to:', redirectUrl); // Отладочное сообщение
-      
-      // Добавляем таймаут, чтобы пользователь увидел сообщение об успехе
       setTimeout(() => {
         window.location.href = redirectUrl;
       }, 1500);
@@ -128,7 +114,6 @@ const submitForm = async () => {
   } catch (err) {
     if (err.response && err.response.status === 422) {
       validationErrors.value = err.response.data.errors || {};
-      // No need for a general error message, individual validation errors will be shown under fields
     } else {
       errorMessage.value = 'An error occurred while processing your order. Please try again.';
     }
@@ -188,7 +173,7 @@ onMounted(() => {
 
 <template>
   <div class="w-full max-w-7xl mx-auto px-4">
-    <h1 class="text-2xl font-bold mb-6">Оформление заказа</h1>
+    <h1 class="text-2xl font-bold mb-6">Checkout</h1>
     
     <!-- Сообщения об ошибках/успехе -->
     <div v-if="successMessage" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4">
@@ -196,7 +181,6 @@ onMounted(() => {
       <button @click="successMessage = ''" class="absolute top-0 right-0 px-4 py-3">&times;</button>
     </div>
     
-    <!-- Display only server errors, not validation errors -->
     <div v-if="errorMessage && !Object.keys(validationErrors).length" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-4">
       <span class="block sm:inline">{{ errorMessage }}</span>
       <button @click="errorMessage = ''" class="absolute top-0 right-0 px-4 py-3">&times;</button>
@@ -204,19 +188,19 @@ onMounted(() => {
     
     <!-- Загрузка -->
     <div v-if="isLoading" class="text-center py-8">
-      <p class="text-gray-600">Загрузка данных...</p>
+      <p class="text-gray-600">Loading checkout...</p>
     </div>
     
     <!-- Ошибка -->
     <div v-else-if="error" class="text-center py-8">
       <p class="text-red-600 mb-2">{{ error }}</p>
-      <a href="/cart" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors">Вернуться в корзину</a>
+      <a href="/cart" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors">Return to Cart</a>
     </div>
     
     <!-- Пустая корзина -->
     <div v-else-if="cartItems.length === 0" class="text-center py-8">
-      <p class="text-gray-600 mb-4">Ваша корзина пуста</p>
-      <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors">Перейти к покупкам</a>
+      <p class="text-gray-600 mb-4">Your cart is empty</p>
+      <a href="/" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded transition-colors">Continue Shopping</a>
     </div>
     
     <!-- Форма оформления заказа -->
@@ -224,11 +208,10 @@ onMounted(() => {
       <!-- Левая колонка: Форма доставки -->
       <div class="lg:w-2/3 lg:pr-8 mb-8 lg:mb-0">
         <div class="bg-white rounded-lg shadow p-6">
-          <h2 class="text-xl font-semibold mb-4">Информация о доставке</h2>
+          <h2 class="text-xl font-semibold mb-4">Shipping Information</h2>
           
-          <!-- Заголовок с текстом Ship To -->
           <div class="mb-6">
-            <h3 class="text-lg font-medium">Адрес доставки</h3>
+            <h3 class="text-lg font-medium">Shipping Address</h3>
           </div>
           
           <!-- Первый ряд: Email и Телефон -->
@@ -406,13 +389,13 @@ onMounted(() => {
           
           <!-- Комментарий к заказу -->
           <div class="mb-4">
-            <label for="comment" class="block text-gray-700 mb-2">Комментарий к заказу</label>
+            <label for="comment" class="block text-gray-700 mb-2">Order notes (optional)</label>
             <textarea 
               id="comment" 
               v-model="formData.comment" 
               class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
               rows="3"
-              placeholder="Дополнительная информация для курьера"
+              placeholder="Additional information for the courier"
             ></textarea>
           </div>
         </div>
@@ -421,7 +404,7 @@ onMounted(() => {
       <!-- Правая колонка: Информация о заказе -->
       <div class="lg:w-1/3">
         <div class="bg-white rounded-lg shadow p-6 sticky top-4">
-          <h2 class="text-xl font-semibold mb-4">Ваш заказ</h2>
+          <h2 class="text-xl font-semibold mb-4">Your Order</h2>
           
           <div class="mb-4">
             <div class="max-h-48 overflow-y-auto mb-4">
@@ -439,12 +422,12 @@ onMounted(() => {
             
             <div class="border-t border-gray-200 pt-4">
               <div class="flex justify-between mb-2">
-                <span>Подытог:</span>
+                <span>Subtotal:</span>
                 <span>{{ subtotal.toFixed(2) }} $</span>
               </div>
               
               <div class="flex justify-between font-semibold text-lg mt-4">
-                <span>Итого:</span>
+                <span>Total:</span>
                 <span>{{ subtotal.toFixed(2) }} $</span>
               </div>
             </div>

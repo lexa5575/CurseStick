@@ -5,13 +5,14 @@ namespace App\Http\Controllers;
 use App\Models\Faq;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\View\View;
 
 class FaqController extends Controller
 {
     /**
      * Отображение страницы FAQ с вопросами и ответами
      */
-    public function index()
+    public function index(): View
     {
         // Загружаем активные FAQ, отсортированные по порядку
         $faqs = Faq::where('is_active', true)
@@ -25,7 +26,7 @@ class FaqController extends Controller
                 ];
             });
             
-        return Inertia::render('Faq/Index', [
+        return view('faq.index', [
             'faqs' => $faqs,
         ]);
     }
