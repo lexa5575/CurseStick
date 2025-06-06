@@ -48,16 +48,8 @@ document.addEventListener('alpine:init', () => {
                 }
                 
                 // Показываем соответствующее уведомление
-                if (isMainProduct) {
-                    // Для основного товара - встроенное уведомление
-                    this.showSuccess = true;
-                    setTimeout(() => {
-                        this.showSuccess = false;
-                    }, 3000);
-                } else {
-                    // Для похожих товаров - всплывающее уведомление
-                    this.showFloatingNotification('Товар добавлен в корзину!');
-                }
+                // Всегда показываем всплывающее уведомление на английском
+                this.showFloatingNotification('Product added to cart!');
             } catch (error) {
                 console.error('Ошибка при добавлении товара в корзину:', error);
                 this.showFloatingNotification('Произошла ошибка при добавлении товара в корзину. Пожалуйста, попробуйте еще раз.', 'error');
