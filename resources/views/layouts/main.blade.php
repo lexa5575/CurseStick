@@ -33,7 +33,7 @@
 </head>
 <body class="min-h-screen bg-gray-50 flex flex-col">
     <!-- Шапка сайта -->
-    <header class="bg-white shadow">
+    <header class="bg-white shadow sticky top-0 z-50">
         <div class="container mx-auto px-4 py-4">
             <div class="flex justify-between items-center">
                 <!-- Логотип -->
