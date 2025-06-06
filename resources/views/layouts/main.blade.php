@@ -143,6 +143,10 @@
             </div>
         </div>
     </footer>
+
+    <!-- Глобальный контейнер для уведомлений -->
+    <div id="notification-container" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+
     <!-- Alpine.js уже обрабатывает все необходимые интеракции для выпадающего меню -->
 
 </body>

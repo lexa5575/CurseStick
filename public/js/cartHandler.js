@@ -61,22 +61,33 @@ document.addEventListener('alpine:init', () => {
         
         // Метод для показа всплывающего уведомления
         showFloatingNotification(message, type = 'success') {
-            const notification = document.createElement('div');
-            const notificationId = Date.now();
-            
-            notification.id = `notification-${notificationId}`;
-            notification.classList.add('fixed', 'bottom-4', 'right-4', 'bg-green-100', 'text-green-700', 'p-3', 'rounded', 'shadow-md', 'z-50');
-            if (type === 'error') {
-                notification.classList.remove('bg-green-100', 'text-green-700');
-                notification.classList.add('bg-red-100', 'text-red-700');
+            const container = document.getElementById('notification-container');
+            if (!container) {
+                console.error('The #notification-container element was not found in the DOM.');
+                return;
             }
-            notification.innerHTML = message;
-            document.body.appendChild(notification);
+
+            // Создаем само уведомление
+            const notification = document.createElement('div');
+            notification.classList.add('p-4', 'rounded-lg', 'shadow-xl', 'text-white', 'font-semibold');
+            
+            if (type === 'error') {
+                notification.classList.add('bg-red-500');
+            } else {
+                notification.classList.add('bg-green-500');
+            }
+            notification.textContent = message;
+
+            // Очищаем контейнер от старых уведомлений и добавляем новое
+            container.innerHTML = '';
+            container.appendChild(notification);
             
             // Удаляем уведомление через 3 секунды
             setTimeout(() => {
-                const element = document.getElementById(`notification-${notificationId}`);
-                if (element) element.remove();
+                // Убедимся, что удаляем именно то уведомление, которое мы создали
+                if (container.contains(notification)) {
+                    container.removeChild(notification);
+                }
             }, 3000);
         }
     }));
