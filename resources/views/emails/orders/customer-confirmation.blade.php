@@ -104,7 +104,14 @@
             <p><strong>Способ оплаты:</strong> {{ ucfirst($order->payment_method) }}</p>
             <p><strong>Статус оплаты:</strong> {{ $order->payment_status }}</p>
             
-            @if($order->payment_method === 'zelle')
+            @if($order->payment_method === 'crypto')
+                <div style="background-color: #ebf8ff; border: 1px solid #4299e1; border-radius: 4px; padding: 15px; margin: 15px 0;">
+                    <h3 style="color: #2b6cb0; margin-top: 0;">Оплата криптовалютой</h3>
+                    <p>Ваш платеж был успешно получен и обработан через криптовалюту.</p>
+                    <p>Сумма платежа: <strong>${{ number_format($order->total, 2) }}</strong></p>
+                    <p>Статус: <span style="color: #22c55e; font-weight: bold;">Оплачен</span></p>
+                </div>
+            @elseif($order->payment_method === 'zelle')
                 @if(isset($zelleAddress))
                 <div style="background-color: #ebf8ff; border: 1px solid #4299e1; border-radius: 4px; padding: 15px; margin: 15px 0;">
                     <h3 style="color: #2b6cb0; margin-top: 0;">Информация об оплате через Zelle</h3>
