@@ -73,6 +73,10 @@ Route::get('/orders/{order}/confirmation', [OrderController::class, 'confirmatio
 // FAQ
 Route::get('/faq', [FaqController::class, 'index'])->name('faq');
 
+// Contact form
+use App\Http\Controllers\ContactController;
+Route::post('/contact', [ContactController::class, 'sendMessage'])->name('contact.send');
+
 // Перенесенные API-маршруты для корзины
 Route::prefix('api/cart')->group(function () {
     // Получить количество товаров в корзине
