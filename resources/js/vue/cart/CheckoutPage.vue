@@ -126,7 +126,16 @@ const submitForm = async () => {
     if (err.response && err.response.status === 422) {
       validationErrors.value = err.response.data.errors || {};
     } else {
-      errorMessage.value = err.response?.data?.message || 'An error occurred while processing your order. Please try again.';
+      // Проверяем специфичные ошибки NOWPayments
+      const errorMsg = err.response?.data?.message || 'An error occurred while processing your order. Please try again.';
+      
+      if (errorMsg.includes('NOWPayments API key is not configured')) {
+        errorMessage.value = 'Payment system is not properly configured. Please contact support.';
+      } else if (errorMsg.includes('NOWPayments API error')) {
+        errorMessage.value = 'Unable to process cryptocurrency payment at this time. Please try again later or choose a different payment method.';
+      } else {
+        errorMessage.value = errorMsg;
+      }
     }
   } finally {
     isSubmitting.value = false;
