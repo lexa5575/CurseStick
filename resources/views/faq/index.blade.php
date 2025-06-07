@@ -118,6 +118,12 @@
 
             <form action="{{ route('contact.send') }}" method="POST">
                 @csrf
+                
+                {{-- Honeypot field for bot protection --}}
+                <div style="position: absolute; left: -5000px;" aria-hidden="true">
+                    <input type="text" name="website" tabindex="-1" autocomplete="off">
+                </div>
+                
                 <!-- Name and Email Fields -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
@@ -164,7 +170,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Auto-hide success/error messages after 5 seconds
+    // Auto-hide success/error messages after 10 seconds
     const alerts = document.querySelectorAll('[role="alert"]');
     alerts.forEach(function(alert) {
         setTimeout(function() {
@@ -173,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(function() {
                 alert.style.display = 'none';
             }, 500);
-        }, 5000);
+        }, 10000);
         
         // Add click handler to close button
         const closeBtn = alert.querySelector('svg[role="button"]');

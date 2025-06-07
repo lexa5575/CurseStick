@@ -93,6 +93,16 @@
         <div class="footer">
             <p>This message was sent from the FAQ contact form on {{ config('app.name') }}</p>
             <p>Sent on: {{ now()->format('F d, Y at H:i') }} UTC</p>
+            @if(isset($data['ip_address']))
+            <p style="margin-top: 10px; font-size: 11px; color: #999;">
+                IP Address: {{ $data['ip_address'] }}
+            </p>
+            @endif
+            @if(isset($data['user_agent']))
+            <p style="font-size: 11px; color: #999;">
+                User Agent: {{ Str::limit($data['user_agent'], 100) }}
+            </p>
+            @endif
         </div>
     </div>
 </body>

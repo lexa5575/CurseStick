@@ -75,7 +75,9 @@ Route::get('/faq', [FaqController::class, 'index'])->name('faq');
 
 // Contact form
 use App\Http\Controllers\ContactController;
-Route::post('/contact', [ContactController::class, 'sendMessage'])->name('contact.send');
+Route::post('/contact', [ContactController::class, 'sendMessage'])
+    ->name('contact.send')
+    ->middleware('throttle:5,10'); // Максимум 5 запросов за 10 минут
 
 // Перенесенные API-маршруты для корзины
 Route::prefix('api/cart')->group(function () {
