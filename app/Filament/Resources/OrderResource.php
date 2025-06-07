@@ -314,13 +314,6 @@ class OrderResource extends Resource
             return false;
         }
 
-        // Записываем в лог информацию о заказе для отладки
-        logger()->info('Attempting to send tracking email', [
-            'order_id' => $order->id,
-            'email' => $order->email,
-            'tracking_number' => $order->tracking_number
-        ]);
-
         // Загружаем заказ со всеми связанными данными, если они еще не загружены
         if (!$order->relationLoaded('items')) {
             $order->load('items.product');
@@ -343,7 +336,6 @@ class OrderResource extends Resource
                 $order->save();
             }
             
-            logger()->info('Tracking email sent successfully', ['order_id' => $order->id]);
             return true;
         } catch (\Exception $e) {
             // Записываем подробную информацию об ошибке в лог

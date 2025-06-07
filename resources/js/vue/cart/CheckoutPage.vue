@@ -167,19 +167,15 @@ const fetchCart = async () => {
     
     // Используем тот же API-эндпоинт, что и в CartPage.vue
     const response = await axios.get('/api/cart');
-    console.log('Ответ API:', response.data);
     
     // Проверяем наличие данных в ответе
     if (response.data && response.data.items) {
       cartItems.value = response.data.items;
-      console.log('Данные корзины загружены:', cartItems.value);
     } else {
       cartItems.value = [];
-      console.log('Корзина пуста или не найдена:', response.data);
     }
   } catch (err) {
     error.value = 'Failed to load cart data. Please try again later.';
-    console.error('Ошибка при загрузке данных корзины:', err);
   } finally {
     isLoading.value = false;
   }

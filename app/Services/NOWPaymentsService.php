@@ -31,7 +31,6 @@ class NOWPaymentsService
                 'Accept' => 'application/json',
             ],
             'timeout' => 30,
-            // Временно отключаем проверку SSL для отладки (только для тестирования!)
             'verify' => config('app.env') === 'production' ? true : false,
         ]);
     }
@@ -64,28 +63,12 @@ class NOWPaymentsService
                 'cancel_url' => $params['cancel_url'] ?? route('cart.index'),
             ];
 
-            // Логируем запрос для отладки
-            Log::info('NOWPayments invoice request', [
-                'url' => $this->apiUrl . '/v1/invoice',
-                'data' => $invoiceData,
-                'api_key_length' => strlen($this->apiKey),
-                'api_key_prefix' => substr($this->apiKey, 0, 10) . '...'
-            ]);
-
             // Send request to create invoice
             $response = $this->client->post('/v1/invoice', [
                 'json' => $invoiceData
             ]);
 
             $result = json_decode($response->getBody()->getContents(), true);
-
-            // Log successful invoice creation
-            Log::info('NOWPayments invoice created', [
-                'invoice_id' => $result['id'] ?? null,
-                'order_id' => $params['order_id'],
-                'amount' => $params['price_amount'],
-                'currency' => $params['price_currency']
-            ]);
 
             return $result;
 
