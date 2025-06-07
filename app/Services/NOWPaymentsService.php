@@ -4,6 +4,7 @@ namespace App\Services;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
+use GuzzleHttp\Exception\RequestException;
 use Illuminate\Support\Facades\Log;
 
 class NOWPaymentsService
@@ -16,6 +17,11 @@ class NOWPaymentsService
     {
         $this->apiKey = config('nowpayments.api_key');
         $this->apiUrl = config('nowpayments.api_url');
+        
+        // Проверяем наличие API ключа
+        if (empty($this->apiKey)) {
+            throw new \Exception('NOWPayments API key is not configured. Please add NOWPAYMENTS_API_KEY to your .env file.');
+        }
         
         $this->client = new Client([
             'base_uri' => $this->apiUrl,
@@ -73,14 +79,30 @@ class NOWPaymentsService
 
             return $result;
 
-        } catch (GuzzleException $e) {
-            Log::error('NOWPayments API error', [
+        } catch (RequestException $e) {
+            $errorMessage = 'NOWPayments API error';
+            $errorDetails = [
                 'error' => $e->getMessage(),
                 'code' => $e->getCode(),
                 'order_id' => $params['order_id'] ?? null
-            ]);
+            ];
             
-            throw new \Exception('Failed to create payment invoice: ' . $e->getMessage());
+            // Пытаемся получить детали ошибки из ответа
+            if ($e->hasResponse() && $response = $e->getResponse()) {
+                $body = $response->getBody()->getContents();
+                $errorDetails['response_body'] = $body;
+                $errorDetails['status_code'] = $response->getStatusCode();
+                
+                // Пытаемся декодировать JSON ответ
+                $jsonError = json_decode($body, true);
+                if ($jsonError && isset($jsonError['message'])) {
+                    $errorMessage .= ': ' . $jsonError['message'];
+                }
+            }
+            
+            Log::error('NOWPayments API error', $errorDetails);
+            
+            throw new \Exception($errorMessage);
         } catch (\Exception $e) {
             Log::error('NOWPayments service error', [
                 'error' => $e->getMessage(),
@@ -102,7 +124,7 @@ class NOWPaymentsService
         try {
             $response = $this->client->get("/v1/invoice/{$invoiceId}");
             return json_decode($response->getBody()->getContents(), true);
-        } catch (GuzzleException $e) {
+        } catch (RequestException $e) {
             Log::error('NOWPayments get invoice error', [
                 'error' => $e->getMessage(),
                 'invoice_id' => $invoiceId
@@ -124,7 +146,7 @@ class NOWPaymentsService
             $result = json_decode($response->getBody()->getContents(), true);
             
             return $result['currencies'] ?? [];
-        } catch (GuzzleException $e) {
+        } catch (RequestException $e) {
             Log::error('NOWPayments get currencies error', [
                 'error' => $e->getMessage()
             ]);
