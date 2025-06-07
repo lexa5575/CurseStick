@@ -141,8 +141,8 @@
                 <div>
                     <h3 class="text-lg font-semibold mb-4">Information</h3>
                     <ul class="space-y-2">
-                        <li><a href="#" class="footer-link">Shipping & Payment</a></li>
-                        <li><a href="#" class="footer-link">Returns</a></li>
+                        <li><a href="{{ route('faq') }}" class="footer-link">Shipping & Payment</a></li>
+                        <li><a href="{{ route('faq') }}" class="footer-link">Returns</a></li>
                     </ul>
                 </div>
 
@@ -150,7 +150,7 @@
                 <div>
                     <h3 class="text-lg font-semibold mb-4">Contact Us</h3>
                     <ul class="space-y-2">
-                        <li><a href="#" class="footer-link">Get in Touch</a></li>
+                        <li><a href="{{ route('faq') }}#contact-form" class="footer-link">Get in Touch</a></li>
                     </ul>
                 </div>
             </div>

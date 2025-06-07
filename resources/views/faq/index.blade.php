@@ -78,7 +78,7 @@
         </div>
 
         <!-- Contact Form Section -->
-        <div class="mt-16 bg-white rounded-lg shadow-md p-8">
+        <div id="contact-form" class="mt-16 bg-white rounded-lg shadow-md p-8">
             <h2 class="text-3xl font-bold text-center mb-6">Still have questions?</h2>
             <p class="text-center text-gray-600 mb-8">If you cannot find an answer to your question in our FAQ, you can always contact us. We will answer you shortly!</p>
 
