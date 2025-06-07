@@ -201,14 +201,27 @@ class CheckoutController extends Controller
             // Если выбрана оплата криптовалютой, создаем инвойс через NOWPayments
             if ($request->payment_method === 'crypto') {
                 try {
+                    // Генерируем URL-адреса
+                    $callbackUrl = route('payment.ipn');
+                    $successUrl = route('payment.success', ['order_id' => $order->id]);
+                    $cancelUrl = route('payment.cancel', ['order_id' => $order->id]);
+                    
+                    // Логируем URL для отладки
+                    \Log::info('NOWPayments URLs', [
+                        'callback' => $callbackUrl,
+                        'success' => $successUrl,
+                        'cancel' => $cancelUrl,
+                        'app_url' => config('app.url')
+                    ]);
+                    
                     $invoice = $this->nowPaymentsService->createInvoice([
                         'price_amount' => $order->total,
                         'price_currency' => 'USD',
                         'order_id' => (string)$order->id,
                         'order_description' => 'Order #' . $order->id . ' from CruseStick Store',
-                        'callback_url' => route('payment.ipn'),
-                        'success_url' => route('payment.success', ['order_id' => $order->id]),
-                        'cancel_url' => route('payment.cancel', ['order_id' => $order->id]),
+                        'callback_url' => $callbackUrl,
+                        'success_url' => $successUrl,
+                        'cancel_url' => $cancelUrl,
                     ]);
 
                     // Сохраняем ID инвойса в заказе для отслеживания
