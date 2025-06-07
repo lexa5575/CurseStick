@@ -11,52 +11,67 @@
             <!-- Question 1 -->
             <div x-data="{ open: false }" class="bg-white rounded-lg shadow-md transform transition-all duration-200 hover:scale-105">
                 <button @click="open = !open" class="w-full flex justify-between items-center text-left text-lg font-semibold p-6 focus:outline-none">
-                    <span>What payment methods do you accept?</span>
+                    <span>How quickly do you ship orders?</span>
                     <svg :class="{'transform rotate-180': open}" class="w-5 h-5 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </button>
                 <div x-show="open" x-cloak x-transition class="p-6 pt-0 text-gray-700">
-                    <p>We accept payments via Zelle and various cryptocurrencies. You can select your preferred payment method during checkout.</p>
+                    <p>We ship all orders within 1–2 business days after payment is confirmed.</p>
                 </div>
             </div>
 
             <!-- Question 2 -->
             <div x-data="{ open: false }" class="bg-white rounded-lg shadow-md transform transition-all duration-200 hover:scale-105">
                 <button @click="open = !open" class="w-full flex justify-between items-center text-left text-lg font-semibold p-6 focus:outline-none">
-                    <span>What is your shipping policy?</span>
+                    <span>Which shipping service do you use?</span>
                     <svg :class="{'transform rotate-180': open}" class="w-5 h-5 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </button>
                 <div x-show="open" x-cloak x-transition class="p-6 pt-0 text-gray-700">
-                    <p>We offer shipping across the United States. Shipping times and costs may vary depending on your location. Detailed information will be provided at checkout once you enter your shipping address.</p>
+                    <p>All packages are shipped via USPS. Delivery typically takes between 2 to 5 business days.</p>
                 </div>
             </div>
 
             <!-- Question 3 -->
             <div x-data="{ open: false }" class="bg-white rounded-lg shadow-md transform transition-all duration-200 hover:scale-105">
                 <button @click="open = !open" class="w-full flex justify-between items-center text-left text-lg font-semibold p-6 focus:outline-none">
-                    <span>How can I track my order?</span>
+                    <span>Where are you located and where do you ship?</span>
                     <svg :class="{'transform rotate-180': open}" class="w-5 h-5 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </button>
                 <div x-show="open" x-cloak x-transition class="p-6 pt-0 text-gray-700">
-                    <p>Once your order is shipped, you will receive an email with a tracking number and a link to the carrier's website where you can track your package.</p>
+                    <p>We ship exclusively within the United States. International shipping is not available at this time.</p>
                 </div>
             </div>
             
             <!-- Question 4 -->
             <div x-data="{ open: false }" class="bg-white rounded-lg shadow-md transform transition-all duration-200 hover:scale-105">
                 <button @click="open = !open" class="w-full flex justify-between items-center text-left text-lg font-semibold p-6 focus:outline-none">
-                    <span>What is your return policy?</span>
+                    <span>Can I return a product?</span>
                     <svg :class="{'transform rotate-180': open}" class="w-5 h-5 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                     </svg>
                 </button>
                 <div x-show="open" x-cloak x-transition class="p-6 pt-0 text-gray-700">
-                    <p>If you are not satisfied with your purchase, you can return it within 30 days for a full refund or exchange. Please visit our 'Returns' page for more details and to initiate a return.</p>
+                    <p>We generally do not accept returns, as our products are not eligible for return once opened.</p>
+                    <p class="mt-3">However, if you received the wrong item or a damaged product, please contact us. In rare cases, a return may be approved — but only if the product is unused, in its original sealed packaging, and can be resold.</p>
+                    <p class="mt-3 font-semibold">Important: Do not return the product without contacting us first. Unauthorized returns cannot be accepted. If your return is approved, we will provide a return label. The product must be packed in neutral packaging — either the original box or a plain one that does not reveal the contents.</p>
+                </div>
+            </div>
+
+            <!-- Question 5 -->
+            <div x-data="{ open: false }" class="bg-white rounded-lg shadow-md transform transition-all duration-200 hover:scale-105">
+                <button @click="open = !open" class="w-full flex justify-between items-center text-left text-lg font-semibold p-6 focus:outline-none">
+                    <span>What if my tracking number doesn't update?</span>
+                    <svg :class="{'transform rotate-180': open}" class="w-5 h-5 text-gray-500 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                </button>
+                <div x-show="open" x-cloak x-transition class="p-6 pt-0 text-gray-700">
+                    <p>Please allow some time — USPS tracking updates can sometimes be delayed. Occasionally, technical issues in their system may cause longer delays. If your tracking status hasn't updated within 24–48 hours, feel free to contact our support team for assistance.</p>
                 </div>
             </div>
 
