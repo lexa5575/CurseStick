@@ -1,6 +1,7 @@
 @extends('layouts.main')
 
 @section('title', 'Categories')
+@section('description', 'Browse all IQOS TEREA Sticks categories available in the USA. Wide selection of premium tobacco products with fast shipping and competitive prices.')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">

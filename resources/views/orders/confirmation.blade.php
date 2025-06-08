@@ -1,5 +1,7 @@
 @extends('layouts.main')
 
+@section('title', 'Order Confirmation')
+
 @section('content')
 <div class="container mx-auto px-4 py-8">
     <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-md overflow-hidden p-6">

@@ -1,6 +1,7 @@
 @extends('layouts.main')
 
 @section('title', $product->name)
+@section('description', 'Buy ' . $product->name . ' IQOS TEREA Sticks Online in the USA. Fast shipping, competitive prices, and excellent customer service. ' . Str::limit(strip_tags($product->description), 100))
 
 @section('content')
 <div class="container mx-auto px-4 py-8">

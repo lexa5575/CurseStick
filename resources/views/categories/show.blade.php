@@ -1,6 +1,7 @@
 @extends('layouts.main')
 
 @section('title', $category->name)
+@section('description', 'Shop ' . $category->name . ' IQOS TEREA Sticks in the USA. ' . Str::limit(strip_tags($category->description ?? 'Premium tobacco products with authentic taste and quality.'), 120) . ' Fast shipping and competitive prices.')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">

@@ -3,6 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- SEO: Meta Description -->
+    <meta name="description" content="@yield('description', 'CruseStick – Buy IQOS TEREA Sticks Online in the USA. Fast shipping, competitive prices, and excellent customer service.')">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name', 'CruseStick'))</title>
 
