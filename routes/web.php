@@ -73,6 +73,20 @@ Route::get('/orders/{order}/confirmation', [OrderController::class, 'confirmatio
 // FAQ
 Route::get('/faq', [FaqController::class, 'index'])->name('faq');
 
+// Sitemap
+Route::get('/sitemap.xml', function () {
+    $path = public_path('sitemap.xml');
+    
+    if (!file_exists($path)) {
+        // Generate sitemap if it doesn't exist
+        \Artisan::call('sitemap:generate');
+    }
+    
+    return response()->file($path, [
+        'Content-Type' => 'application/xml'
+    ]);
+})->name('sitemap');
+
 // Contact form
 use App\Http\Controllers\ContactController;
 Route::post('/contact', [ContactController::class, 'sendMessage'])

@@ -1,0 +1,20 @@
+/* TEAM */
+    Site: CruseStick - IQOS TEREA Sticks Online Store
+    Location: USA
+    
+/* THANKS */
+    Laravel Framework
+    Alpine.js
+    Vue.js
+    Tailwind CSS
+    
+/* SITE */
+    Last update: 2024/12
+    Language: English
+    Standards: HTML5, CSS3, ES6+
+    Components: Laravel 12, Vue 3, Alpine.js
+    Software: PHP 8.4+
+    
+/* ABOUT */
+    CruseStick is your trusted online destination for IQOS TEREA Sticks in the USA.
+    We offer fast shipping, competitive prices, and excellent customer service. 

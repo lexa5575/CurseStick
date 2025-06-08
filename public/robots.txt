@@ -1,2 +1,57 @@
+# Robots.txt for CruseStick.com - IQOS TEREA Sticks Store
+# Last updated: December 2024
+
+# Default - Allow all crawlers
 User-agent: *
-Disallow:
+Allow: /
+
+# Disallow admin and private areas
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api/
+Disallow: /storage/
+Disallow: /vendor/
+Disallow: /.env
+Disallow: /config/
+Disallow: /database/
+
+# Disallow user-specific pages
+Disallow: /cart
+Disallow: /checkout
+Disallow: /orders/
+Disallow: /favorites
+Disallow: /login
+Disallow: /register
+Disallow: /password/
+
+# Disallow search and filter URLs to avoid duplicate content
+Disallow: /*?*
+Disallow: /*&
+Allow: /*?page=
+
+# Allow important assets
+Allow: /build/assets/
+Allow: /images/
+Allow: /*.css
+Allow: /*.js
+Allow: /*.jpg
+Allow: /*.jpeg
+Allow: /*.png
+Allow: /*.gif
+Allow: /*.webp
+
+# Crawl-delay (in seconds) - optional, uncomment if needed
+# Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://crusestick.com/sitemap.xml
+
+# Block bad bots (optional)
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: SemrushBot
+Crawl-delay: 10
