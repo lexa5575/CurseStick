@@ -19,10 +19,6 @@
         <div x-show="open" @click.away="open = false" class="absolute top-16 right-0 bg-white shadow-lg rounded-lg py-2 w-48 z-10">
             <a href="{{ route('home') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Home</a>
             <a href="{{ route('categories.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Categories</a>
-            @auth
-            <a href="{{ route('favorites.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Favorites</a>
-            <a href="{{ route('orders.index') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">Orders</a>
-            @endauth
             <a href="{{ route('faq') }}" class="block px-4 py-2 text-gray-700 hover:bg-gray-100">FAQ</a>
         </div>
     </div>
