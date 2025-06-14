@@ -177,7 +177,7 @@ class PaymentController extends Controller
         }
 
         // Update order status
-        $order->status = 'Paid';
+        $order->status = 'Оплачен';
         $order->payment_status = 'completed';
         $order->save();
 

@@ -174,8 +174,9 @@ class OrderResource extends Resource
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
                         'Новый' => 'info',
-                        'Обработан' => 'success',
-                        'Отправлен' => 'warning',
+                        'Оплачен' => 'success',
+                        'Обработан' => 'warning',
+                        'Отправлен' => 'primary',
                         'Доставлен' => 'success',
                         'Отменен' => 'danger',
                         default => 'gray',
