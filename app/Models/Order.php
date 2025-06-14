@@ -9,6 +9,51 @@ class Order extends Model
 {
     use HasFactory;
 
+    // Order status constants
+    public const STATUS_NEW = 'Новый';
+    public const STATUS_PAID = 'Оплачен';
+    public const STATUS_PROCESSED = 'Обработан';
+    public const STATUS_SHIPPED = 'Отправлен';
+    public const STATUS_DELIVERED = 'Доставлен';
+    public const STATUS_CANCELLED = 'Отменен';
+
+    // Payment status constants
+    public const PAYMENT_PENDING = 'pending';
+    public const PAYMENT_COMPLETED = 'completed';
+    public const PAYMENT_FAILED = 'failed';
+    public const PAYMENT_REFUNDED = 'refunded';
+
+    /**
+     * Get all available order statuses
+     */
+    public static function getStatuses(): array
+    {
+        return [
+            self::STATUS_NEW => self::STATUS_NEW,
+            self::STATUS_PAID => self::STATUS_PAID,
+            self::STATUS_PROCESSED => self::STATUS_PROCESSED,
+            self::STATUS_SHIPPED => self::STATUS_SHIPPED,
+            self::STATUS_DELIVERED => self::STATUS_DELIVERED,
+            self::STATUS_CANCELLED => self::STATUS_CANCELLED,
+        ];
+    }
+
+    /**
+     * Get status color for badges
+     */
+    public static function getStatusColor(string $status): string
+    {
+        return match ($status) {
+            self::STATUS_NEW => 'info',
+            self::STATUS_PAID => 'success',
+            self::STATUS_PROCESSED => 'warning',
+            self::STATUS_SHIPPED => 'primary',
+            self::STATUS_DELIVERED => 'success',
+            self::STATUS_CANCELLED => 'danger',
+            default => 'gray',
+        };
+    }
+
     /**
      * Safe fields for mass assignment
      */

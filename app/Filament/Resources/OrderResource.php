@@ -45,8 +45,9 @@ class OrderResource extends Resource
                             ->label('ID заказа')
                             ->disabled(),
                             
-                        Forms\Components\TextInput::make('status')
+                        Forms\Components\Select::make('status')
                             ->label('Статус заказа')
+                            ->options(\App\Models\Order::getStatuses())
                             ->required(),
                             
                         Forms\Components\Select::make('payment_method')
@@ -172,15 +173,7 @@ class OrderResource extends Resource
                 Tables\Columns\TextColumn::make('status')
                     ->label('Статус заказа')
                     ->badge()
-                    ->color(fn (string $state): string => match ($state) {
-                        'Новый' => 'info',
-                        'Оплачен' => 'success',
-                        'Обработан' => 'warning',
-                        'Отправлен' => 'primary',
-                        'Доставлен' => 'success',
-                        'Отменен' => 'danger',
-                        default => 'gray',
-                    })
+                    ->color(fn (string $state): string => \App\Models\Order::getStatusColor($state))
                     ->sortable(),
                     
                 Tables\Columns\TextColumn::make('payment_method')

@@ -24,14 +24,7 @@ class ViewOrder extends EditRecord
                     ->schema([
                         Components\Select::make('status')
                             ->label('Статус заказа')
-                            ->options([
-                                'Новый' => 'Новый',
-                                'Оплачен' => 'Оплачен',
-                                'Обработан' => 'Обработан',
-                                'Отправлен' => 'Отправлен',
-                                'Доставлен' => 'Доставлен',
-                                'Отменен' => 'Отменен',
-                            ])
+                            ->options(\App\Models\Order::getStatuses())
                             ->required(),
                             
                         Components\Select::make('payment_status')
@@ -141,8 +134,8 @@ class ViewOrder extends EditRecord
                         \Mail::to($order->email)->send(new \App\Mail\OrderShippedMail($order));
                         
                         // Обновляем статус заказа
-                        if ($order->status !== 'Отправлен') {
-                            $order->status = 'Отправлен';
+                        if ($order->status !== \App\Models\Order::STATUS_SHIPPED) {
+                            $order->status = \App\Models\Order::STATUS_SHIPPED;
                             $order->save();
                         }
                         
