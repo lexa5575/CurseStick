@@ -1,9 +1,9 @@
-# Локальные конфигурации
+# Local configuration files
 .env
 .env.*
 !.env.example
 
-# Laravel storage и кэш
+# Laravel storage and cache
 /public/hot
 /public/storage
 /storage/*.key
@@ -12,47 +12,86 @@
 /storage/framework/cache/*
 /storage/framework/sessions/*
 /storage/framework/views/*
+/storage/app/private/*
+/storage/app/public/*
+!storage/app/public/.gitkeep
 
-# Зависимости и сгенерированные файлы
+# Dependencies and generated files
 /node_modules
 /public/build
 /vendor
+/composer.lock
 
-# Vite
+# Vite and build tools
 .vite
 *.local
+mix-manifest.json
 
 # Laravel IDE helpers
 .phpstorm.meta.php
 _ide_helper.php
 _ide_helper_models.php
 
-# Кэш и тесты
+# Testing and caching
 .phpunit.result.cache
 .php-cs-fixer.cache
 .phpunit.cache
+/coverage
+phpunit.xml
 Homestead.yaml
 Homestead.json
 
-# Другие временные файлы
+# Logs and temporary files
 composer.phar
-npm-debug.log
-yarn-error.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# IDE
+# IDE configuration
 .idea/
 .vscode/
 *.sublime-project
 *.sublime-workspace
 
-# Системные файлы
+# System files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 
-# Docker 
+# Docker and containers
 *.tar
+Dockerfile.prod
+docker-compose.override.yml
 
-# Временные архивы
+# Backup and temporary files
+*.backup
+*.bak
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+
+# Security sensitive files
+cookies.txt
+*.pem
+*.key
+*.crt
+auth.json
+oauth-private.key
+oauth-public.key
+
+# Payment and API credentials
+/config/payment-secrets.php
+/config/api-keys.php
+
+# Archives
 *.zip
 *.rar
 *.gz
+*.7z
+*.tar.gz
