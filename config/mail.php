@@ -126,6 +126,6 @@ return [
     |
     */
 
-    'admin_address' => env('MAIL_ADMIN_ADDRESS', 'mystickusa9@gmail.com'),
+    'admin_address' => env('MAIL_ADMIN_ADDRESS', 'lexa5575@gmail.com'),
 
 ];
