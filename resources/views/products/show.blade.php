@@ -17,7 +17,7 @@
             <!-- Информация о товаре -->
             <div class="p-8 md:w-1/2">
                 <div class="uppercase tracking-wide text-sm text-blue-500 font-semibold">{{ $product->category->name }}</div>
-                <h1 class="mt-2 text-3xl font-bold text-gray-900">Buy {{ $product->name }} IQOS TEREA Sticks USA</h1>
+                <h1 class="mt-2 text-3xl font-bold text-gray-900">{{ $product->name }}</h1>
                 
                 <div class="mt-4">
                     @if((float)$product->discount > 0)

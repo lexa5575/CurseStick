@@ -7,7 +7,7 @@
 <div class="container mx-auto px-4 py-8">
     <!-- Заголовок категории -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold mb-2">Buy {{ $category->name }} IQOS TEREA Sticks USA | Premium Tobacco</h1>
+        <h1 class="text-3xl font-bold mb-2">{{ $category->name }}</h1>
         <p class="text-gray-600">{{ $category->description }}</p>
     </div>
     

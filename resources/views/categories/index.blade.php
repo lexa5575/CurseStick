@@ -7,7 +7,7 @@
 <div class="container mx-auto px-4 py-8">
     <!-- Заголовок страницы -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold mb-2">IQOS TEREA Sticks Categories - Buy Premium Tobacco USA</h1>
+        <h1 class="text-3xl font-bold mb-2">Categories</h1>
         <p class="text-gray-600">Choose a category to browse authentic IQOS TEREA sticks with fast shipping across USA</p>
         <div class="mt-4 text-gray-700">
             <p>Discover our premium collection of IQOS TEREA sticks available for purchase in the United States. We offer authentic tobacco products with competitive prices, fast USPS shipping, and excellent customer service. All TEREA sticks are genuine and sourced directly from authorized distributors.</p>
