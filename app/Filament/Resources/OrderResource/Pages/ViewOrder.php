@@ -29,14 +29,7 @@ class ViewOrder extends EditRecord
                             
                         Components\Select::make('payment_status')
                             ->label('Статус оплаты')
-                            ->options([
-                                'pending' => 'Ожидает оплаты',
-                                'processing' => 'Обрабатывается',
-                                'completed' => 'Оплачен',
-                                'cancelled' => 'Отменен',
-                                'failed' => 'Ошибка',
-                                'refunded' => 'Возвращен',
-                            ])
+                            ->options(\App\Models\Order::getPaymentStatuses())
                             ->required(),
                     ])
                     ->columns(2),

@@ -39,6 +39,21 @@ class Order extends Model
     }
 
     /**
+     * Get all available payment statuses
+     */
+    public static function getPaymentStatuses(): array
+    {
+        return [
+            self::PAYMENT_PENDING => 'Ожидает оплаты',
+            self::PAYMENT_COMPLETED => 'Оплачен',
+            'processing' => 'Обрабатывается',
+            'cancelled' => 'Отменен',
+            self::PAYMENT_FAILED => 'Ошибка',
+            self::PAYMENT_REFUNDED => 'Возвращен',
+        ];
+    }
+
+    /**
      * Get status color for badges
      */
     public static function getStatusColor(string $status): string
@@ -71,8 +86,9 @@ class Order extends Model
         'email',
         'comment',
         'payment_method',
+        'payment_status', // Added for admin panel editing
         // System fields excluded from mass assignment for security:
-        // user_id, total, payment_status, payment_invoice_id, tracking_number
+        // user_id, total, payment_invoice_id, tracking_number
     ];
     
     /**
