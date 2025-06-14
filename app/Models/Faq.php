@@ -15,4 +15,11 @@ class Faq extends Model
         'order',
         'is_active',
     ];
-} 
+    /**
+     * Scope для активных FAQ
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true)->orderBy('order');
+    }
+}

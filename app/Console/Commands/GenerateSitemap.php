@@ -31,11 +31,13 @@ class GenerateSitemap extends Command
     {
         $this->info('Starting sitemap generation...');
         
-        $sitemap = Sitemap::create(config('app.url'));
+        $sitemap = Sitemap::create();
+        
+        $baseUrl = config('app.url');
         
         // Add home page
         $sitemap->add(
-            Url::create('/')
+            Url::create($baseUrl)
                 ->setLastModificationDate(now())
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_DAILY)
                 ->setPriority(1.0)
@@ -43,7 +45,7 @@ class GenerateSitemap extends Command
         
         // Add categories index page
         $sitemap->add(
-            Url::create('/categories')
+            Url::create($baseUrl . '/categories')
                 ->setLastModificationDate(now())
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
                 ->setPriority(0.9)
@@ -53,7 +55,7 @@ class GenerateSitemap extends Command
         $categories = Category::all();
         foreach ($categories as $category) {
             $sitemap->add(
-                Url::create("/category/{$category->slug}")
+                Url::create($baseUrl . "/category/{$category->slug}")
                     ->setLastModificationDate($category->updated_at)
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
                     ->setPriority(0.8)
@@ -64,7 +66,7 @@ class GenerateSitemap extends Command
         $products = Product::where('is_active', true)->get();
         foreach ($products as $product) {
             $sitemap->add(
-                Url::create("/product/{$product->slug}")
+                Url::create($baseUrl . "/product/{$product->slug}")
                     ->setLastModificationDate($product->updated_at)
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
                     ->setPriority(0.7)
@@ -73,26 +75,10 @@ class GenerateSitemap extends Command
         
         // Add FAQ page
         $sitemap->add(
-            Url::create('/faq')
+            Url::create($baseUrl . '/faq')
                 ->setLastModificationDate(now())
                 ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
                 ->setPriority(0.6)
-        );
-        
-        // Add cart page
-        $sitemap->add(
-            Url::create('/cart')
-                ->setLastModificationDate(now())
-                ->setChangeFrequency(Url::CHANGE_FREQUENCY_YEARLY)
-                ->setPriority(0.5)
-        );
-        
-        // Add checkout page
-        $sitemap->add(
-            Url::create('/checkout')
-                ->setLastModificationDate(now())
-                ->setChangeFrequency(Url::CHANGE_FREQUENCY_YEARLY)
-                ->setPriority(0.5)
         );
         
         // Write sitemap to file

@@ -11,17 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Очищаем таблицу, если существует
-        Schema::dropIfExists('order_status_histories');
-
         Schema::create('order_status_histories', function (Blueprint $table) {
             $table->id();
             $table->foreignId('order_id')->constrained()->onDelete('cascade');
             $table->string('status');
-            // Удалены поля comment и user_id, так как их нет в модели
+            $table->text('comment')->nullable(); // Для заметок админа
+            $table->foreignId('created_by')->nullable()->constrained('users'); // Кто изменил статус
+            $table->timestamps();
             
             // Индексы
             $table->index('order_id');
+            $table->index('created_at'); // Для сортировки истории
         });
     }
 

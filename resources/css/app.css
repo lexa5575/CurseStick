@@ -53,4 +53,37 @@
     .category-dropdown-header {
         @apply px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider bg-gray-100;
     }
+    
+    /* Checkout Form Components */
+    .form-field {
+        @apply w-full p-2 border rounded focus:outline-none focus:ring-2 transition-colors duration-200;
+    }
+    
+    .form-field-error {
+        @apply border-red-500 bg-red-50 focus:ring-red-200;
+    }
+    
+    .form-field-normal {
+        @apply border-gray-300 focus:border-blue-500 focus:ring-blue-200;
+    }
+    
+    .form-field-optional {
+        @apply border-gray-300 focus:border-blue-500 focus:ring-blue-200;
+    }
+    
+    .error-message {
+        @apply mt-2 p-3 bg-red-50 border border-red-200 rounded-lg shadow-sm;
+    }
+    
+    .error-content {
+        @apply flex items-start;
+    }
+    
+    .error-icon {
+        @apply flex-shrink-0;
+    }
+    
+    .error-text {
+        @apply ml-2 text-red-700 text-sm;
+    }
 }

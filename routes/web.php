@@ -120,6 +120,33 @@ Route::prefix('api/checkout')->group(function () {
     Route::post('/process', [CheckoutController::class, 'process']);
 });
 
+// API-маршруты для купонов (используют web middleware для сессий)
+use App\Http\Controllers\Api\CouponController;
+Route::prefix('api/cart')->group(function () {
+    // Apply coupon to cart (защита от DDoS: 5 попыток в минуту)
+    Route::post('/apply-coupon', [CouponController::class, 'applyCoupon'])
+         ->middleware('throttle:5,1');
+    
+    // Remove specific coupon from cart
+    Route::post('/remove-coupon', [CouponController::class, 'removeCoupon'])
+         ->middleware('throttle:10,1');
+    
+    // Remove all coupons from cart
+    Route::post('/remove-all-coupons', [CouponController::class, 'removeAllCoupons'])
+         ->middleware('throttle:10,1');
+    
+    // Get current cart calculation with applied coupons
+    Route::get('/calculation', [CouponController::class, 'getCartCalculation'])
+         ->middleware('throttle:30,1');
+});
+
+// Admin routes for Zelle payment details
+use App\Http\Controllers\Admin\ZellePaymentController;
+Route::prefix('admin/zelle')->middleware(['auth', 'admin'])->group(function () {
+    Route::post('/send-payment-details/{zelleAddress}', [ZellePaymentController::class, 'sendPaymentDetailsRoute'])
+         ->name('admin.zelle.send-payment-details');
+});
+
 // Payment routes
 use App\Http\Controllers\PaymentController;
 
@@ -130,9 +157,11 @@ Route::prefix('payment')->name('payment.')->group(function () {
     // IPN callback (exclude from CSRF protection)
     Route::post('/ipn', [PaymentController::class, 'handleIPN'])->name('ipn')->withoutMiddleware('web');
     
-    // Success/Cancel pages
+    // Success/Cancel/Partial/Failed pages
     Route::get('/success', [PaymentController::class, 'paymentSuccess'])->name('success');
     Route::get('/cancel', [PaymentController::class, 'paymentCancel'])->name('cancel');
+    Route::get('/partial', [PaymentController::class, 'paymentPartial'])->name('partial');
+    Route::get('/failed', [PaymentController::class, 'paymentFailed'])->name('failed');
     
     // Get available currencies
     Route::get('/currencies', [PaymentController::class, 'getAvailableCurrencies'])->name('currencies');

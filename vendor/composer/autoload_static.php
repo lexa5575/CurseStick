@@ -787,6 +787,7 @@ class ComposerStaticInit88970a0117c062eed55fa8728fc43833
         'AnourValar\\EloquentSerialize\\Service' => __DIR__ . '/..' . '/anourvalar/eloquent-serialize/src/Service.php',
         'App\\Console\\Commands\\GenerateCategorySlugs' => __DIR__ . '/../..' . '/app/Console/Commands/GenerateCategorySlugs.php',
         'App\\Console\\Commands\\GenerateProductSlugs' => __DIR__ . '/../..' . '/app/Console/Commands/GenerateProductSlugs.php',
+        'App\\Console\\Commands\\GenerateSitemap' => __DIR__ . '/../..' . '/app/Console/Commands/GenerateSitemap.php',
         'App\\Filament\\Resources\\BannerResource' => __DIR__ . '/../..' . '/app/Filament/Resources/BannerResource.php',
         'App\\Filament\\Resources\\BannerResource\\Pages\\CreateBanner' => __DIR__ . '/../..' . '/app/Filament/Resources/BannerResource/Pages/CreateBanner.php',
         'App\\Filament\\Resources\\BannerResource\\Pages\\EditBanner' => __DIR__ . '/../..' . '/app/Filament/Resources/BannerResource/Pages/EditBanner.php',

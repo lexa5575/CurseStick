@@ -11,13 +11,16 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Сначала удаляем таблицу, если она существует
-        Schema::dropIfExists('favorites');
-        
         Schema::create('favorites', function (Blueprint $table) {
             $table->id();
+            
+            // ПРИМЕЧАНИЕ: user_id НЕ должен быть в $fillable модели (небезопасно!)
+            // Устанавливается программно: auth()->id()
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            
+            // Поле из $fillable модели Favorite
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
+            
             $table->timestamps();
 
             // Индексы

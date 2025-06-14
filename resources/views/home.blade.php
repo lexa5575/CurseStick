@@ -1,6 +1,7 @@
 @extends('layouts.main')
 
-@section('title', 'CruseStick')
+@section('title', 'Buy IQOS TEREA Sticks USA | CruseStick - Best Prices & Fast Shipping')
+@section('description', 'Buy authentic IQOS TEREA sticks online in USA. Premium tobacco products, competitive prices, fast USPS shipping. Wide selection of TEREA flavors available.')
 
 @section('content')
 <!-- Баннер-слайдер -->
@@ -9,13 +10,13 @@
 <div class="container mx-auto px-4 py-8">
     <!-- Категории товаров -->
     <div class="mb-12">
-        <h2 class="text-2xl font-bold mb-6">Popular Categories</h2>
+        <h2 class="text-2xl font-bold mb-6">Popular IQOS TEREA Categories</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             @foreach($categories as $category)
             <a href="{{ route('categories.show', $category) }}" class="group">
                 <div class="bg-white rounded-lg shadow-md overflow-hidden transition-transform transform hover:scale-105">
                     <div class="h-48 overflow-hidden">
-                        <img src="{{ $category->image_url }}" alt="{{ $category->name }}" class="w-full h-full object-cover group-hover:opacity-90 transition-opacity">
+                        <img src="{{ $category->image_url }}" alt="{{ $category->name }} IQOS TEREA Sticks Category - Buy Premium Tobacco USA" class="w-full h-full object-cover group-hover:opacity-90 transition-opacity">
                     </div>
                     <div class="p-4">
                         <h3 class="font-semibold text-lg text-center">{{ $category->name }}</h3>
@@ -28,13 +29,13 @@
     
     <!-- Популярные товары -->
     <div>
-        <h2 class="text-2xl font-bold mb-6">Featured Products</h2>
+        <h2 class="text-2xl font-bold mb-6">Featured IQOS TEREA Sticks</h2>
         <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             @foreach($featuredProducts as $product)
             <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                 <a href="{{ route('products.show', $product) }}" class="block">
                     <div class="relative h-48 overflow-hidden">
-                        <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                        <img src="{{ $product->image_url }}" alt="Buy {{ $product->name }} IQOS TEREA Sticks USA - Premium Tobacco" class="w-full h-full object-cover">
                         @if((float)$product->discount > 0)
                         <div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
                             -{{ number_format($product->discount / $product->price * 100) }}%

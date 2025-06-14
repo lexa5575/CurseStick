@@ -5,11 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
+use App\Traits\HasSlug;
 
 class Category extends Model
 {
-    use HasFactory;
+    use HasFactory, HasSlug;
 
     protected $fillable = [
         'name',
@@ -18,17 +18,10 @@ class Category extends Model
         'image',
     ];
     
-    /**
-     * Добавляем атрибуты, которые должны быть доступны для сериализации JSON
-     *
-     * @var array
-     */
     protected $appends = ['image_url'];
 
     /**
      * Get the route key for the model.
-     *
-     * @return string
      */
     public function getRouteKeyName()
     {
@@ -36,37 +29,21 @@ class Category extends Model
     }
 
     /**
-     * The "booted" method of the model.
-     *
-     * @return void
+     * ИСПРАВЛЕНИЕ: убран дублирующий код booted() - теперь в HasSlug trait
      */
-    protected static function booted()
-    {
-        static::saving(function ($category) {
-            if ($category->isDirty('name') || empty($category->slug)) {
-                $slug = Str::slug($category->name, '-');
-                $originalSlug = $slug;
-                $count = 1;
-
-                while (static::where('slug', $slug)->when($category->exists, function ($query) use ($category) {
-                    return $query->where('id', '!=', $category->id);
-                })->exists()) {
-                    $slug = $originalSlug . '-' . $count++;
-                }
-                $category->slug = $slug;
-            }
-        });
-    }
 
     public function products()
     {
         return $this->hasMany(Product::class);
     }
+
+    public function coupons()
+    {
+        return $this->belongsToMany(Coupon::class, 'coupon_categories');
+    }
     
     /**
      * Получить URL изображения
-     *
-     * @return string
      */
     public function getImageUrlAttribute()
     {

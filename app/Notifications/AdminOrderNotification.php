@@ -25,12 +25,24 @@ class AdminOrderNotification extends Notification
     protected $adminEmail;
 
     /**
+     * Расчет корзины с купонами
+     */
+    protected $calculation;
+
+    /**
+     * Примененные купоны
+     */
+    protected $appliedCoupons;
+
+    /**
      * Create a new notification instance.
      */
-    public function __construct($order, $adminEmail)
+    public function __construct($order, $adminEmail, $calculation = null, $appliedCoupons = [])
     {
         $this->order = $order;
         $this->adminEmail = $adminEmail;
+        $this->calculation = $calculation;
+        $this->appliedCoupons = $appliedCoupons;
     }
 
     /**
@@ -49,8 +61,13 @@ class AdminOrderNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->subject('Новый заказ #' . $this->order->id . ' на сайте')
-            ->view('emails.orders.admin-notification', ['order' => $this->order]);
+            ->subject('New Order #' . $this->order->id . ' - CruseStick Admin Alert')
+            ->view('emails.orders.admin-notification', [
+                'order' => $this->order,
+                'calculation' => $this->calculation,
+                'appliedCoupons' => $this->appliedCoupons,
+                'recipientEmail' => $this->adminEmail
+            ]);
     }
 
     /**

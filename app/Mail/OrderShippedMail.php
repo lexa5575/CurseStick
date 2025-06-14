@@ -30,7 +30,7 @@ class OrderShippedMail extends Mailable
     {
         return new Envelope(
             from: new Address(config('mail.from.address'), config('mail.from.name')),
-            subject: 'Ваш заказ #' . $this->order->id . ' отправлен',
+            subject: 'Your order #' . $this->order->id . ' has been shipped - CruseStick',
             replyTo: [new Address(config('mail.from.address'), config('mail.from.name'))],
         );
     }
@@ -44,6 +44,7 @@ class OrderShippedMail extends Mailable
             view: 'emails.orders.shipped',
             with: [
                 'order' => $this->order,
+                'recipientEmail' => $this->order->email,
             ],
         );
     }

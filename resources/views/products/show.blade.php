@@ -10,14 +10,14 @@
             <!-- Изображение товара -->
             <div class="md:w-1/2">
                 <div class="h-96 overflow-hidden">
-                    <img src="{{ $product->image_url }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                    <img src="{{ $product->image_url }}" alt="Buy {{ $product->name }} IQOS TEREA Sticks Online USA - Authentic Premium Tobacco" class="w-full h-full object-cover">
                 </div>
             </div>
             
             <!-- Информация о товаре -->
             <div class="p-8 md:w-1/2">
                 <div class="uppercase tracking-wide text-sm text-blue-500 font-semibold">{{ $product->category->name }}</div>
-                <h1 class="mt-2 text-3xl font-bold text-gray-900">{{ $product->name }}</h1>
+                <h1 class="mt-2 text-3xl font-bold text-gray-900">Buy {{ $product->name }} IQOS TEREA Sticks USA</h1>
                 
                 <div class="mt-4">
                     @if((float)$product->discount > 0)
@@ -102,7 +102,7 @@
             <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                 <a href="{{ route('products.show', $relatedProduct) }}">
                     <div class="relative h-48 overflow-hidden">
-                        <img src="{{ $relatedProduct->image_url }}" alt="{{ $relatedProduct->name }}" class="w-full h-full object-cover">
+                        <img src="{{ $relatedProduct->image_url }}" alt="Buy {{ $relatedProduct->name }} IQOS TEREA Sticks USA - Premium Tobacco" class="w-full h-full object-cover">
                         @if((float)$relatedProduct->discount > 0)
                         <div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
                             -{{ number_format($relatedProduct->discount / $relatedProduct->price * 100) }}%

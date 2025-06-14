@@ -7,6 +7,32 @@
     <meta name="description" content="@yield('description', 'CruseStick – Buy IQOS TEREA Sticks Online in the USA. Fast shipping, competitive prices, and excellent customer service.')">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', config('app.name', 'CruseStick'))</title>
+    
+    <!-- Favicon for browsers and search engines -->
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="icon" type="image/x-icon" href="{{ asset('favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ asset('favicon.ico') }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon.svg') }}">
+    
+    <!-- Open Graph meta tags for social sharing and search -->
+    <meta property="og:title" content="@yield('title', config('app.name', 'CruseStick'))">
+    <meta property="og:description" content="@yield('description', 'CruseStick – Buy IQOS TEREA Sticks Online in the USA. Fast shipping, competitive prices, and excellent customer service.')">
+    <meta property="og:image" content="{{ asset('favicon-192x192.svg') }}">
+    <meta property="og:image:width" content="192">
+    <meta property="og:image:height" content="192">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="CruseStick">
+    
+    <!-- Twitter Card meta tags -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="@yield('title', config('app.name', 'CruseStick'))">
+    <meta name="twitter:description" content="@yield('description', 'CruseStick – Buy IQOS TEREA Sticks Online in the USA. Fast shipping, competitive prices, and excellent customer service.')">
+    <meta name="twitter:image" content="{{ asset('favicon-192x192.svg') }}">
+    
+    <!-- Additional meta for search engines -->
+    <meta name="theme-color" content="#2563eb">
+    <meta name="msapplication-TileColor" content="#2563eb">
 
     <!-- Стили и скрипты -->
     <link rel="stylesheet" href="{{ asset('build/assets/app.css') }}">

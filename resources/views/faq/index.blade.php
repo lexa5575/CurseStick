@@ -1,6 +1,7 @@
 @extends('layouts.main')
 
-@section('title', 'FAQ')
+@section('title', 'FAQ - IQOS TEREA Sticks USA | Shipping, Payment & Returns')
+@section('description', 'Frequently asked questions about buying IQOS TEREA sticks in USA. Learn about shipping, payment methods, returns, and contact our support team.')
 
 @section('content')
 <div class="container mx-auto px-4 py-12">

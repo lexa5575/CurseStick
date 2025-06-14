@@ -11,6 +11,7 @@ use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Notifications\Notification;
 
 class ZelleAddressResource extends Resource
 {
@@ -88,6 +89,42 @@ class ZelleAddressResource extends Resource
                 //
             ])
             ->actions([
+                Tables\Actions\Action::make('send_payment_details')
+                    ->label('Отправить реквизиты')
+                    ->icon('heroicon-o-envelope')
+                    ->color('success')
+                    ->requiresConfirmation()
+                    ->modalHeading('Отправить платежные реквизиты')
+                    ->modalDescription(fn (ZelleAddress $record) => "Отправить платежные реквизиты на email: {$record->email}?")
+                    ->action(function (ZelleAddress $record) {
+                        try {
+                            // Отправляем запрос на маршрут для отправки email
+                            $controller = app('App\Http\Controllers\Admin\ZellePaymentController');
+                            $response = $controller->sendPaymentDetails($record);
+                            
+                            $responseData = $response->getData();
+                            
+                            if ($responseData->success) {
+                                Notification::make()
+                                    ->title('Платежные реквизиты отправлены!')
+                                    ->success()
+                                    ->body("Email с реквизитами отправлен на {$record->email}")
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title('Ошибка отправки')
+                                    ->danger()
+                                    ->body($responseData->message)
+                                    ->send();
+                            }
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Ошибка отправки')
+                                ->danger()
+                                ->body('Не удалось отправить email: ' . $e->getMessage())
+                                ->send();
+                        }
+                    }),
                 Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])

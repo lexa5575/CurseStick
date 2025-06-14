@@ -9,15 +9,31 @@ class OrderStatusHistory extends Model
 {
     use HasFactory;
 
+    /**
+     * ИСПРАВЛЕНИЕ: добавлены поля из обновленной миграции
+     * created_by НЕ в $fillable - устанавливается программно: auth()->id()
+     */
     protected $fillable = [
         'order_id',
         'status',
+        'comment',
     ];
 
-    public $timestamps = false;
+    /**
+     * ИСПРАВЛЕНИЕ: включены timestamps (убрано $timestamps = false)
+     * Миграция содержит timestamps
+     */
 
     public function order()
     {
         return $this->belongsTo(Order::class);
     }
-} 
+
+    /**
+     * Пользователь который изменил статус
+     */
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+}

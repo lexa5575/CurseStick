@@ -9,8 +9,11 @@ class Favorite extends Model
 {
     use HasFactory;
 
+    /**
+     * ИСПРАВЛЕНИЕ: убрали user_id из $fillable (небезопасно!)
+     * user_id устанавливается программно: auth()->id()
+     */
     protected $fillable = [
-        'user_id',
         'product_id',
     ];
 
@@ -23,4 +26,4 @@ class Favorite extends Model
     {
         return $this->belongsTo(Product::class);
     }
-} 
+}

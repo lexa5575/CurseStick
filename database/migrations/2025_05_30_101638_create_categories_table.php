@@ -11,21 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Очищаем таблицу, если существует
-        Schema::dropIfExists('categories');
-
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
-            // Поля из $fillable модели
+            
+            // Поля из $fillable модели Category
             $table->string('name');
+            $table->string('slug')->unique(); // Добавлено для модели
             $table->text('description')->nullable();
             $table->string('image')->nullable();
             
-            // Дополнительные поля, которых нет в $fillable модели
-            // Делаем их с значениями по умолчанию
-            $table->integer('order')->default(0)->nullable();
-            $table->boolean('is_active')->default(true);
             $table->timestamps();
+            
+            // Индексы
+            $table->index('slug'); // Для быстрого поиска по slug
         });
     }
 

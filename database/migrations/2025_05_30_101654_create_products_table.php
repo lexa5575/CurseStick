@@ -11,27 +11,25 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Очищаем таблицу, если существует
-        Schema::dropIfExists('products');
-
         Schema::create('products', function (Blueprint $table) {
             $table->id();
             
-            // Поля из $fillable модели
-            $table->foreignId('category_id')->constrained();
+            // Поля из $fillable модели Product (в правильном порядке)
             $table->string('name');
+            $table->string('slug')->unique(); // Добавлено для модели
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2);
-            $table->decimal('discount', 10, 2)->default(0);
-            $table->string('image')->nullable();
             $table->boolean('is_active')->default(true);
             $table->boolean('is_featured')->default(false);
+            $table->decimal('discount', 10, 2)->default(0);
+            $table->string('image')->nullable();
+            $table->foreignId('category_id')->constrained()->onDelete('cascade');
             
-            // Удалено поле stock_quantity, так как штучный учет не важен
             $table->timestamps();
-            $table->softDeletes();
+            $table->softDeletes(); // Из модели - use SoftDeletes
             
             // Индексы для быстрого поиска и фильтрации
+            $table->index('slug');
             $table->index('category_id');
             $table->index('is_active');
             $table->index('is_featured');

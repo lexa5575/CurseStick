@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Traits\HasCartAccess;
 use App\Http\Requests\Checkout\ProcessCheckoutRequest;
 use App\Models\Cart;
 use App\Models\Order;
@@ -22,44 +23,24 @@ use Illuminate\Support\Str;
 
 class CheckoutController extends Controller
 {
-    protected $nowPaymentsService;
-
-    public function __construct(NOWPaymentsService $nowPaymentsService)
-    {
-        $this->nowPaymentsService = $nowPaymentsService;
-    }
+    use HasCartAccess;
+    // NOWPaymentsService will be loaded only when needed for crypto payments
 
     /**
-     * Получить данные для формы оформления заказа
-     * Маршрут: GET /api/checkout/data
+     * Get data for checkout form
+     * Route: GET /api/checkout/data
      */
     public function getData()
     {
-        // Сначала найдем корзину пользователя
-        $cartId = session('cart_id');
-        $cart = null;
-
-        // Если пользователь авторизован, ищем корзину по user_id
-        if (Auth::check()) {
-            $cart = Cart::where('user_id', Auth::id())->first();
-        }
-        
-        // Если корзина не найдена, ищем по session_id
-        if (!$cart && $cartId) {
-            $cart = Cart::find($cartId);
-        }
-        
-        // Если корзина не найдена, ищем по текущему session_id
-        if (!$cart) {
-            $cart = Cart::where('session_id', session()->getId())->first();
-        }
+        // Get cart using unified logic
+        $cart = $this->getUserCart();
 
         $cartItems = [];
         $total = 0;
 
         if ($cart) {
             $items = $cart->items()->with('itemable')->get();
-            
+
             foreach ($items as $item) {
                 if ($item->itemable instanceof Product) {
                     $cartItems[] = [
@@ -78,26 +59,21 @@ class CheckoutController extends Controller
             }
         }
 
-        // Данные пользователя, если он авторизован
+        // User data if authenticated
         $userData = [];
         if (Auth::check()) {
             $user = Auth::user();
             $userData = [
-                'name' => $user->name,
+                'name' => $user->first_name . ' ' . $user->last_name,
                 'email' => $user->email,
-                // Дополнительные данные из профиля, если есть
                 'phone' => $user->phone ?? '',
-                'address' => $user->address ?? '',
             ];
         }
 
-        // Список доступных способов оплаты
+        // Available payment methods
         $paymentMethods = [
             ['id' => 'zelle', 'name' => 'Zelle (Instant bank transfers)'],
             ['id' => 'crypto', 'name' => 'Cryptocurrency (Bitcoin, Ethereum, etc.)'],
-            ['id' => 'cash', 'name' => 'Cash on delivery'],
-            ['id' => 'card', 'name' => 'Credit/Debit card'],
-            ['id' => 'online', 'name' => 'Online payment'],
         ];
 
         return response()->json([
@@ -110,74 +86,106 @@ class CheckoutController extends Controller
     }
 
     /**
-     * Обработка оформления заказа
-     * Маршрут: POST /api/checkout/process
+     * Process checkout order
+     * Route: POST /api/checkout/process
      */
     public function process(ProcessCheckoutRequest $request)
-    {   
-        // Данные уже провалидированы благодаря ProcessCheckoutRequest
+    {
+        // Log the request for debugging
+        \Log::info('Checkout process started', [
+            'method' => $request->method(),
+            'payment_method' => $request->input('payment_method'),
+            'name' => $request->input('name'),
+            'email' => $request->input('email')
+        ]);
 
-        // Получаем корзину
-        $cartId = session('cart_id');
-        $cart = null;
+        // Data already validated by ProcessCheckoutRequest
 
-        if (Auth::check()) {
-            $cart = Cart::where('user_id', Auth::id())->first();
-        }
-        
-        if (!$cart && $cartId) {
-            $cart = Cart::find($cartId);
-        }
-        
-        if (!$cart) {
-            $cart = Cart::where('session_id', session()->getId())->first();
-        }
+        // Get cart using unified logic
+        $cart = $this->getUserCart();
+        \Log::info('Cart retrieved', ['cart_id' => $cart ? $cart->id : null, 'items_count' => $cart ? $cart->items()->count() : 0]);
 
-        // Если корзина пуста или не найдена
+        // If cart is empty or not found
         if (!$cart || $cart->items()->count() == 0) {
+            \Log::warning('Cart is empty or not found');
             return response()->json([
                 'success' => false,
-                'message' => 'Ваша корзина пуста'
+                'message' => 'Your cart is empty'
             ], 400);
         }
 
         try {
-            // Начинаем транзакцию
+            // Begin database transaction
             DB::beginTransaction();
 
-            // Определяем начальный статус заказа в зависимости от способа оплаты
-            $orderStatus = 'Новый';
+            // Determine initial order status based on payment method
+            $orderStatus = 'New';
             $paymentStatus = 'pending';
-            
+
             if ($request->payment_method === 'crypto') {
-                $orderStatus = 'Ожидает оплаты';
+                $orderStatus = 'Awaiting Payment';
                 $paymentStatus = 'waiting';
             }
 
-            // Создаем заказ
+            // Create order using only fillable fields
             $order = new Order([
-                'user_id' => Auth::check() ? Auth::id() : null,
                 'status' => $orderStatus,
-                'total' => $cart->items()->sum(DB::raw('price * quantity')),
-                // Сохраняем все компоненты адреса в соответствующие поля
                 'company' => $request->company,
-                'street' => $request->street, // Обновлено с address на street
-                'house' => $request->house ?? '', // Обновлено с addressUnit на house
+                'street' => $request->street,
+                'house' => $request->house ?? '',
                 'city' => $request->city,
                 'state' => $request->state,
-                'postal_code' => $request->postal_code, // Обновлено с zipcode на postal_code
+                'postal_code' => $request->postal_code,
                 'country' => $request->country,
                 'phone' => $request->phone,
                 'email' => $request->email,
                 'name' => $request->name,
                 'comment' => $request->comment,
-                'payment_method' => $request->payment_method ?? 'none', // Обновлено с paymentMethod на payment_method
-                'payment_status' => $paymentStatus
+                'payment_method' => $request->payment_method ?? 'none',
             ]);
+
+            // Validate coupons before processing checkout
+            $couponService = app(\App\Services\CouponService::class);
+            $couponValidation = $couponService->validateCouponsForCheckout();
             
+            // If coupons are invalid, return error
+            if (!$couponValidation['valid']) {
+                DB::rollBack();
+                
+                \Log::warning('Checkout failed due to invalid coupons', [
+                    'message' => $couponValidation['message']
+                ]);
+                
+                return response()->json([
+                    'success' => false,
+                    'message' => $couponValidation['message'],
+                    'coupon_error' => true // Flag to indicate coupon-related error
+                ], 400);
+            }
+            
+            // Calculate total with validated coupons
+            $calculation = $couponService->getCurrentCartCalculation($cart);
+            $appliedCoupons = $couponValidation['coupons'];
+            
+            // Add coupon info to comment
+            $comment = $request->comment ?? '';
+            if (!empty($appliedCoupons)) {
+                $couponInfo = [];
+                foreach ($appliedCoupons as $coupon) {
+                    $couponInfo[] = "Applied coupon: {$coupon->code} (-{$calculation['total_discount']} USD)";
+                }
+                $comment = trim($comment . "\n\n" . implode("\n", $couponInfo));
+            }
+            
+            // Set system fields separately (not in fillable for security)
+            $order->user_id = Auth::check() ? Auth::id() : null;
+            $order->total = $calculation['final_total']; // Use final total with discounts
+            $order->payment_status = $paymentStatus;
+            $order->comment = $comment; // Update comment with coupon info
+
             $order->save();
 
-            // Создаем элементы заказа из корзины
+            // Create order items from cart
             foreach ($cart->items as $item) {
                 if ($item->itemable instanceof Product) {
                     $orderItem = new OrderItem([
@@ -185,43 +193,70 @@ class CheckoutController extends Controller
                         'product_id' => $item->itemable->id,
                         'quantity' => $item->quantity,
                         'price' => $item->price,
-                        'discount' => 0, // По умолчанию без скидки
+                        'discount' => 0, // Default no discount
+                        'product_name' => $item->itemable->name,
+                        'product_sku' => $item->itemable->sku ?? null,
                     ]);
                     $orderItem->save();
                 }
             }
 
-            // Добавляем первую запись в историю статусов
+            // Add first entry to status history
             $statusHistory = new OrderStatusHistory([
                 'order_id' => $order->id,
                 'status' => $orderStatus,
             ]);
             $statusHistory->save();
 
-            // Если выбрана оплата криптовалютой, создаем инвойс через NOWPayments
+            // If cryptocurrency payment is selected, create invoice through NOWPayments
             if ($request->payment_method === 'crypto') {
                 try {
-                    $invoice = $this->nowPaymentsService->createInvoice([
+                    // Load NOWPaymentsService only when needed
+                    $nowPaymentsService = app(NOWPaymentsService::class);
+                    
+                    $invoice = $nowPaymentsService->createInvoice([
                         'price_amount' => $order->total,
                         'price_currency' => 'USD',
                         'order_id' => (string)$order->id,
-                        'order_description' => 'Order #' . $order->id . ' from CruseStick Store',
+                        'order_description' => 'Order #' . $order->order_number . ' from CruseStick Store',
                         'callback_url' => route('payment.ipn'),
-                        'success_url' => route('payment.success', ['order_id' => $order->id]),
-                        'cancel_url' => route('payment.cancel', ['order_id' => $order->id]),
+                        'success_url' => route('payment.success', ['token' => $order->payment_token]),
+                        'cancel_url' => route('payment.cancel', ['token' => $order->payment_token]),
                     ]);
 
-                    // Сохраняем ID инвойса в заказе для отслеживания
+                    // Save invoice ID in order for tracking
                     $order->payment_invoice_id = $invoice['id'] ?? null;
                     $order->save();
 
-                    // Очищаем корзину
+                    // Increment coupon usage count (with race condition protection)
+                    foreach ($appliedCoupons as $coupon) {
+                        $usageIncremented = $coupon->incrementUsage();
+                        if (!$usageIncremented) {
+                            // Coupon usage limit was exceeded during checkout
+                            DB::rollBack();
+                            \Log::warning('Crypto checkout failed: coupon usage limit exceeded', [
+                                'coupon_id' => $coupon->id,
+                                'coupon_code' => $coupon->code,
+                                'usage_count' => $coupon->usage_count,
+                                'usage_limit' => $coupon->usage_limit
+                            ]);
+                            
+                            return response()->json([
+                                'success' => false,
+                                'message' => "Coupon '{$coupon->code}' has reached its usage limit. Please try again without this coupon.",
+                                'coupon_error' => true
+                            ], 400);
+                        }
+                    }
+
+                    // Clear cart and coupons
                     $cart->items()->delete();
-                    
-                    // Фиксируем транзакцию
+                    $couponService->clearCouponData();
+
+                    // Commit transaction
                     DB::commit();
 
-                    // Возвращаем URL для перенаправления на страницу оплаты
+                    // Return URL for redirecting to payment page
                     return response()->json([
                         'success' => true,
                         'message' => 'Redirecting to payment page...',
@@ -229,11 +264,16 @@ class CheckoutController extends Controller
                         'redirect_url' => $invoice['invoice_url'],
                         'payment_type' => 'crypto'
                     ]);
-                    
                 } catch (\Exception $paymentException) {
-                    // Если не удалось создать инвойс, откатываем транзакцию
+                    // If failed to create invoice, rollback transaction
                     DB::rollBack();
-                    
+
+                    // Log the specific error for debugging
+                    \Log::error('Crypto payment processing failed: ' . $paymentException->getMessage(), [
+                        'order_id' => $order->id ?? null,
+                        'payment_method' => 'crypto'
+                    ]);
+
                     return response()->json([
                         'success' => false,
                         'message' => 'Failed to create payment invoice. Please try again.',
@@ -242,46 +282,75 @@ class CheckoutController extends Controller
                 }
             }
 
-            // Для других способов оплаты - стандартная обработка
-            // Очищаем корзину
+            // For other payment methods - standard processing
+            // Increment coupon usage count (with race condition protection)
+            foreach ($appliedCoupons as $coupon) {
+                $usageIncremented = $coupon->incrementUsage();
+                if (!$usageIncremented) {
+                    // Coupon usage limit was exceeded during checkout
+                    DB::rollBack();
+                    \Log::warning('Checkout failed: coupon usage limit exceeded', [
+                        'coupon_id' => $coupon->id,
+                        'coupon_code' => $coupon->code,
+                        'usage_count' => $coupon->usage_count,
+                        'usage_limit' => $coupon->usage_limit
+                    ]);
+                    
+                    return response()->json([
+                        'success' => false,
+                        'message' => "Coupon '{$coupon->code}' has reached its usage limit. Please try again without this coupon.",
+                        'coupon_error' => true
+                    ], 400);
+                }
+            }
+            
+            // Clear cart and coupons
             $cart->items()->delete();
-            
-            // Если все успешно, фиксируем транзакцию
+            $couponService->clearCouponData();
+
+            // If everything is successful, commit transaction
             DB::commit();
-            
-            // Отправляем уведомление клиенту (только для не-крипто платежей)
+
+            // Send notification to client (only for non-crypto payments)
             try {
                 if ($order->email) {
                     Notification::route('mail', $order->email)
-                        ->notify(new OrderConfirmation($order));
+                        ->notify(new OrderConfirmation($order, $calculation, $appliedCoupons));
                 }
-                
-                // Отправляем уведомление администратору
+
+                // Send notification to administrator
                 $adminEmail = config('mail.admin_address', 'admin@crusestick.com');
                 Notification::route('mail', $adminEmail)
-                    ->notify(new AdminOrderNotification($order, $adminEmail));
-                    
+                    ->notify(new AdminOrderNotification($order, $adminEmail, $calculation, $appliedCoupons));
             } catch (\Exception $emailException) {
-                // Логируем ошибку отправки, но не прерываем процесс заказа
-                \Log::error('Ошибка отправки email-уведомления: ' . $emailException->getMessage());
+                // Log sending error, but don't interrupt order process
+                \Log::error('Email notification sending error: ' . $emailException->getMessage());
             }
 
-            // Гарантируем, что order_id передается правильно и в формате строки, чтобы избежать проблем с преобразованием типов
+            // Ensure order_id is passed correctly in string format to avoid type conversion issues
             return response()->json([
                 'success' => true,
-                'message' => 'Ваш заказ успешно оформлен!',
-                'order_id' => (string)$order->id, // Явно преобразуем в строку
-                'redirect_url' => '/orders/'.$order->id.'/confirmation' // Добавляем полный URL для перенаправления
+                'message' => 'Your order has been successfully placed!',
+                'order_id' => (string)$order->id,
+                'redirect_url' => '/orders/' . $order->id . '/confirmation'
             ]);
         } catch (\Exception $e) {
-            // Если произошла ошибка, откатываем транзакцию
+            // If an error occurred, rollback transaction
             DB::rollBack();
-            
+
+            \Log::error('Checkout process failed', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+                'file' => $e->getFile(),
+                'line' => $e->getLine()
+            ]);
+
             return response()->json([
                 'success' => false,
-                'message' => 'Произошла ошибка при оформлении заказа. Пожалуйста, попробуйте позже.',
+                'message' => 'An error occurred while processing your order. Please try again later.',
                 'error' => $e->getMessage()
             ], 500);
         }
     }
+
 }

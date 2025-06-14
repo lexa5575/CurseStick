@@ -55,13 +55,8 @@ class PaymentController extends Controller
             // Create invoice via NOWPayments API
             $invoice = $this->nowPaymentsService->createInvoice($params);
 
-            // Store invoice data in session for verification
-            Session::put('payment_invoice_' . $validated['order_id'], [
-                'invoice_id' => $invoice['id'],
-                'amount' => $validated['amount'],
-                'currency' => $validated['currency'],
-                'created_at' => now()->toDateTimeString(),
-            ]);
+            // Invoice data is now stored in database via payment_invoice_id field
+            // No need to store sensitive data in session
 
             // Check if this is an API request
             if ($request->expectsJson()) {
@@ -102,7 +97,16 @@ class PaymentController extends Controller
      */
     public function handleIPN(Request $request)
     {
-        Log::info('NOWPayments IPN received', $request->all());
+        // Log only essential IPN info, not sensitive data
+        Log::info('NOWPayments IPN received', [
+            'payment_status' => $request->input('payment_status'),
+            'order_id' => $request->input('order_id'),
+            'invoice_id' => $request->input('invoice_id'),
+            'payment_id' => $request->input('payment_id'),
+            'timestamp' => now()->toISOString(),
+            'ip_address' => $request->ip(),
+            // DO NOT log full request data for security
+        ]);
 
         // Verify IPN signature if configured
         if (config('nowpayments.ipn_secret')) {
@@ -151,41 +155,65 @@ class PaymentController extends Controller
         Log::info('Payment successful', [
             'order_id' => $orderId,
             'invoice_id' => $invoiceId,
-            'data' => $data
+            'payment_status' => $data['payment_status'] ?? null,
+            'actually_paid' => $data['actually_paid'] ?? null,
+            'pay_amount' => $data['pay_amount'] ?? null,
+            'pay_currency' => $data['pay_currency'] ?? null,
+            'timestamp' => now()->toISOString(),
+            // DO NOT log full IPN data for security
         ]);
 
-        // Находим заказ
-        $order = Order::find($orderId);
+        // Find the order and verify invoice ID matches
+        $order = Order::where('id', $orderId)
+                     ->where('payment_invoice_id', $invoiceId)
+                     ->first();
         
         if (!$order) {
-            Log::error('Order not found for successful payment', ['order_id' => $orderId]);
+            Log::error('Order not found or invoice ID mismatch for successful payment', [
+                'order_id' => $orderId,
+                'invoice_id' => $invoiceId
+            ]);
             return;
         }
 
-        // Обновляем статус заказа
-        $order->status = 'Оплачен';
+        // Update order status
+        $order->status = 'Paid';
         $order->payment_status = 'completed';
         $order->save();
 
-        // Добавляем запись в историю статусов
+        // Add entry to status history
         OrderStatusHistory::create([
             'order_id' => $order->id,
-            'status' => 'Оплачен',
+            'status' => 'Paid',
             'comment' => 'Payment received via cryptocurrency'
         ]);
 
-        // Отправляем email уведомления
+        // Send email notifications
         try {
-            // Уведомление клиенту
-            if ($order->email) {
-                Notification::route('mail', $order->email)
-                    ->notify(new OrderConfirmation($order));
+            // Get coupon information from order comment if available
+            $calculation = null;
+            $appliedCoupons = [];
+            
+            // Try to extract coupon info from order comment
+            if ($order->comment && str_contains($order->comment, 'Applied coupon:')) {
+                // For crypto payments, we don't have access to the original coupon objects
+                // but we can show the discount amount from the order comment
+                $calculation = [
+                    'original_total' => $order->total, // We don't have the original total
+                    'total_discount' => 0 // We don't have the exact discount amount
+                ];
             }
             
-            // Уведомление администратору
+            // Notification to client
+            if ($order->email) {
+                Notification::route('mail', $order->email)
+                    ->notify(new OrderConfirmation($order, $calculation, $appliedCoupons));
+            }
+            
+            // Notification to administrator
             $adminEmail = config('mail.admin_address', 'admin@crusestick.com');
             Notification::route('mail', $adminEmail)
-                ->notify(new AdminOrderNotification($order, $adminEmail));
+                ->notify(new AdminOrderNotification($order, $adminEmail, $calculation, $appliedCoupons));
                 
         } catch (\Exception $emailException) {
             Log::error('Error sending payment confirmation emails', [
@@ -203,20 +231,30 @@ class PaymentController extends Controller
         Log::warning('Partial payment received', [
             'order_id' => $orderId,
             'invoice_id' => $invoiceId,
-            'data' => $data
+            'payment_status' => $data['payment_status'] ?? null,
+            'actually_paid' => $data['actually_paid'] ?? null,
+            'pay_amount' => $data['pay_amount'] ?? null,
+            'pay_currency' => $data['pay_currency'] ?? null,
+            'timestamp' => now()->toISOString(),
+            // DO NOT log full IPN data for security
         ]);
 
-        $order = Order::find($orderId);
+        $order = Order::where('id', $orderId)
+                     ->where('payment_invoice_id', $invoiceId)
+                     ->first();
         
         if ($order) {
             $order->payment_status = 'partial';
             $order->save();
             
-            // Добавляем запись в историю статусов
+            // Add entry to status history with actual payment amount
+            $actuallyPaid = $data['actually_paid'] ?? 'unknown';
+            $payCurrency = $data['pay_currency'] ?? 'crypto';
+            
             OrderStatusHistory::create([
                 'order_id' => $order->id,
-                'status' => 'Частичная оплата',
-                'comment' => 'Partial payment received. Amount: ' . ($data['actually_paid'] ?? 'unknown')
+                'status' => 'Partial Payment',
+                'comment' => "Partial payment received. Amount: {$actuallyPaid} {$payCurrency}. Remaining balance needs to be settled."
             ]);
         }
     }
@@ -229,37 +267,128 @@ class PaymentController extends Controller
         Log::error('Payment failed', [
             'order_id' => $orderId,
             'invoice_id' => $invoiceId,
-            'data' => $data
+            'payment_status' => $data['payment_status'] ?? null,
+            'failure_reason' => $data['outcome']['reason'] ?? null,
+            'timestamp' => now()->toISOString(),
+            // DO NOT log full IPN data for security
         ]);
 
-        $order = Order::find($orderId);
+        $order = Order::where('id', $orderId)
+                     ->where('payment_invoice_id', $invoiceId)
+                     ->first();
         
         if ($order) {
             $order->payment_status = 'failed';
             $order->save();
             
-            // Добавляем запись в историю статусов
+            // Get failure reason for better tracking
+            $failureReason = $data['outcome']['reason'] ?? 'Payment expired or failed';
+            $paymentStatus = $data['payment_status'] ?? 'unknown';
+            
+            // Add entry to status history
             OrderStatusHistory::create([
                 'order_id' => $order->id,
-                'status' => 'Платеж не прошел',
-                'comment' => 'Payment failed or expired'
+                'status' => 'Payment Failed',
+                'comment' => "Payment {$paymentStatus}. Reason: {$failureReason}"
             ]);
         }
     }
 
     /**
-     * Payment success page
+     * Universal payment status page - redirects based on actual payment status
      */
     public function paymentSuccess(Request $request)
     {
-        $orderId = $request->get('order_id');
+        $token = $request->get('token');
         $order = null;
         
-        if ($orderId) {
-            $order = Order::find($orderId);
+        if ($token) {
+            $order = Order::where('payment_token', $token)->first();
+            
+            // Additional security check for authenticated users
+            if ($order && auth()->check() && $order->user_id !== auth()->id()) {
+                abort(403, 'Access denied to this order');
+            }
         }
         
-        return view('payment.success', compact('order'));
+        if (!$order) {
+            abort(404, 'Order not found');
+        }
+        
+        // Redirect based on actual payment status
+        switch ($order->payment_status) {
+            case 'completed':
+                // Payment fully completed
+                return view('payment.success', compact('order'));
+                
+            case 'partial':
+                // Partial payment received
+                $actuallyPaid = $request->get('actually_paid');
+                return view('payment.partial', compact('order', 'actuallyPaid'));
+                
+            case 'failed':
+            case 'expired':
+                // Payment failed or expired
+                return view('payment.failed', compact('order'));
+                
+            case 'cancelled':
+                // Payment cancelled by user
+                return redirect()->route('payment.cancel', ['token' => $token]);
+                
+            case 'waiting':
+            default:
+                // Still waiting for payment or unknown status
+                return view('payment.success', compact('order'));
+        }
+    }
+
+    /**
+     * Payment partial page
+     */
+    public function paymentPartial(Request $request)
+    {
+        $token = $request->get('token');
+        $order = null;
+        $actuallyPaid = $request->get('actually_paid');
+        
+        if ($token) {
+            $order = Order::where('payment_token', $token)->first();
+            
+            // Additional security check for authenticated users
+            if ($order && auth()->check() && $order->user_id !== auth()->id()) {
+                abort(403, 'Access denied to this order');
+            }
+        }
+        
+        if (!$order) {
+            abort(404, 'Order not found');
+        }
+        
+        return view('payment.partial', compact('order', 'actuallyPaid'));
+    }
+
+    /**
+     * Payment failed page
+     */
+    public function paymentFailed(Request $request)
+    {
+        $token = $request->get('token');
+        $order = null;
+        
+        if ($token) {
+            $order = Order::where('payment_token', $token)->first();
+            
+            // Additional security check for authenticated users
+            if ($order && auth()->check() && $order->user_id !== auth()->id()) {
+                abort(403, 'Access denied to this order');
+            }
+        }
+        
+        if (!$order) {
+            abort(404, 'Order not found');
+        }
+        
+        return view('payment.failed', compact('order'));
     }
 
     /**
@@ -267,24 +396,33 @@ class PaymentController extends Controller
      */
     public function paymentCancel(Request $request)
     {
-        $orderId = $request->get('order_id');
+        $token = $request->get('token');
         $order = null;
         
-        if ($orderId) {
-            $order = Order::find($orderId);
+        if ($token) {
+            $order = Order::where('payment_token', $token)->first();
             
-            // Обновляем статус заказа на "Отменен", если платеж был отменен
+            // Additional security check for authenticated users
+            if ($order && auth()->check() && $order->user_id !== auth()->id()) {
+                abort(403, 'Access denied to this order');
+            }
+            
+            // Update order status to "Cancelled" if payment was cancelled
             if ($order && $order->payment_status === 'waiting') {
-                $order->status = 'Отменен';
+                $order->status = 'Cancelled';
                 $order->payment_status = 'cancelled';
                 $order->save();
                 
                 OrderStatusHistory::create([
                     'order_id' => $order->id,
-                    'status' => 'Отменен',
+                    'status' => 'Cancelled',
                     'comment' => 'Payment cancelled by user'
                 ]);
             }
+        }
+        
+        if (!$order) {
+            abort(404, 'Order not found');
         }
         
         return view('payment.cancel', compact('order'));

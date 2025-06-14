@@ -1,11 +1,16 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
+import ErrorMessage from '../components/ErrorMessage.vue';
 
 // State
 const isLoading = ref(true);
 const error = ref(null);
 const cartItems = ref([]);
+const appliedCoupons = ref([]);
+const totalDiscount = ref(0);
+const finalTotal = ref(0);
+const originalTotal = ref(0);
 const formData = ref({
   name: '',
   email: '',
@@ -26,80 +31,22 @@ const formData = ref({
 const successMessage = ref('');
 const errorMessage = ref('');
 
-// Computed Properties
-const subtotal = computed(() => {
-  return cartItems.value.reduce((total, item) => {
-    return total + (item.price * item.quantity);
-  }, 0);
-});
+// Note: subtotal is now loaded from API as originalTotal
 
 // Validation State
 const isSubmitting = ref(false);
 const validationErrors = ref({});
 
-// Form validation function
-const validateForm = () => {
-  validationErrors.value = {};
-  let isValid = true;
-  
-  if (!formData.value.name.trim()) {
-    validationErrors.value.name = 'Name is required';
-    isValid = false;
-  }
-  
-  if (!formData.value.email.trim()) {
-    validationErrors.value.email = 'Email is required';
-    isValid = false;
-  } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.value.email)) {
-    validationErrors.value.email = 'Invalid email format';
-    isValid = false;
-  }
-  
-  if (!formData.value.street.trim()) {
-    validationErrors.value.street = 'Street address is required';
-    isValid = false;
-  }
-  
-  if (!formData.value.city.trim()) {
-    validationErrors.value.city = 'City is required';
-    isValid = false;
-  }
-  
-  if (!formData.value.state.trim()) {
-    validationErrors.value.state = 'State is required';
-    isValid = false;
-  }
-  
-  if (!formData.value.postal_code.trim()) {
-    validationErrors.value.postal_code = 'ZIP / Postal code is required';
-    isValid = false;
-  }
-  
-  if (!formData.value.payment_method) {
-    validationErrors.value.payment_method = 'Please select a payment method';
-    isValid = false;
-  }
-
-  if (!formData.value.ageVerified) {
-    validationErrors.value.ageVerified = 'You must confirm you are at least 21 years old to continue.';
-    isValid = false;
-  }
-  
-  return isValid;
-};
-
 // Form submission function
 const submitForm = async () => {
   errorMessage.value = '';
   successMessage.value = '';
-  
-  if (!validateForm()) {
-    return;
-  }
+  validationErrors.value = {};
   
   isSubmitting.value = true;
   
   try {
+    setupAxios(); // Убеждаемся, что axios настроен правильно
     const response = await axios.post('/api/checkout/process', formData.value);
     
     if (response.data.success) {
@@ -124,12 +71,40 @@ const submitForm = async () => {
     }
   } catch (err) {
     if (err.response && err.response.status === 422) {
-      validationErrors.value = err.response.data.errors || {};
-    } else {
-      // Проверяем специфичные ошибки NOWPayments
-      const errorMsg = err.response?.data?.message || 'An error occurred while processing your order. Please try again.';
+      const errors = err.response.data.errors || {};
+      // Конвертируем массивы ошибок в строки (берем первое сообщение)
+      validationErrors.value = {};
+      for (const field in errors) {
+        validationErrors.value[field] = Array.isArray(errors[field]) ? errors[field][0] : errors[field];
+      }
       
-      if (errorMsg.includes('NOWPayments API key is not configured')) {
+      // Скроллим к первому полю с ошибкой на мобильных устройствах
+      setTimeout(() => {
+        const firstErrorField = Object.keys(validationErrors.value)[0];
+        if (firstErrorField) {
+          const element = document.getElementById(firstErrorField);
+          if (element) {
+            element.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center',
+              inline: 'nearest'
+            });
+            element.focus();
+          }
+        }
+      }, 100);
+    } else {
+      // Проверяем специфичные ошибки
+      const errorMsg = err.response?.data?.message || 'An error occurred while processing your order. Please try again.';
+      const isCouponError = err.response?.data?.coupon_error || false;
+      
+      if (isCouponError) {
+        // Купон стал невалидным - перезагружаем корзину для обновления
+        errorMessage.value = errorMsg + ' The page will refresh to update your cart.';
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      } else if (errorMsg.includes('NOWPayments API key is not configured')) {
         errorMessage.value = 'Payment system is not properly configured. Please contact support.';
       } else if (errorMsg.includes('NOWPayments API error')) {
         errorMessage.value = 'Unable to process cryptocurrency payment at this time. Please try again later or choose a different payment method.';
@@ -142,28 +117,28 @@ const submitForm = async () => {
   }
 };
 
+// Настройка axios для всех запросов
+const setupAxios = () => {
+  // Устанавливаем базовый URL
+  axios.defaults.baseURL = window.location.origin;
+  
+  const csrfToken = document.querySelector('meta[name="csrf-token"]');
+  if (csrfToken) {
+    axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
+  }
+  
+  axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+  axios.defaults.headers.common['Accept'] = 'application/json';
+  axios.defaults.withCredentials = true;
+};
+
 // Загрузка данных корзины
 const fetchCart = async () => {
   isLoading.value = true;
   error.value = null; // Сбрасываем ошибку при новой загрузке
   
   try {
-    // Проверяем наличие CSRF-токена
-    const csrfToken = document.querySelector('meta[name="csrf-token"]');
-    if (csrfToken) {
-      axios.defaults.headers.common['X-CSRF-TOKEN'] = csrfToken.getAttribute('content');
-    }
-    
-    // Добавляем специальные заголовки
-    axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
-    axios.defaults.headers.common['Accept'] = 'application/json';
-    
-    // Если есть куки с ID корзины, добавляем его в заголовок
-    const cartCookie = document.cookie.split('; ').find(row => row.startsWith('cart_session='));
-    if (cartCookie) {
-      const cartId = cartCookie.split('=')[1];
-      axios.defaults.headers.common['X-Cart-ID'] = cartId;
-    }
+    setupAxios();
     
     // Используем тот же API-эндпоинт, что и в CartPage.vue
     const response = await axios.get('/api/cart');
@@ -171,8 +146,17 @@ const fetchCart = async () => {
     // Проверяем наличие данных в ответе
     if (response.data && response.data.items) {
       cartItems.value = response.data.items;
+      appliedCoupons.value = response.data.coupons?.applied_coupons || [];
+      totalDiscount.value = response.data.total_discount || 0;
+      originalTotal.value = response.data.total || 0;
+      finalTotal.value = response.data.final_total || response.data.total || 0;
+      
     } else {
       cartItems.value = [];
+      appliedCoupons.value = [];
+      totalDiscount.value = 0;
+      originalTotal.value = 0;
+      finalTotal.value = 0;
     }
   } catch (err) {
     error.value = 'Failed to load cart data. Please try again later.';
@@ -186,6 +170,7 @@ onMounted(() => {
   fetchCart();
 });
 </script>
+
 
 <template>
   <div class="w-full max-w-7xl mx-auto px-4">
@@ -237,21 +222,25 @@ onMounted(() => {
                 type="email" 
                 id="email" 
                 v-model="formData.email" 
-                class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                :class="{'border-red-500': validationErrors.email, 'border-gray-300': !validationErrors.email}"
-                placeholder="Email"
+                class="form-field"
+                :class="validationErrors.email ? 'form-field-error' : 'form-field-normal'"
+                placeholder="Email Address"
+                maxlength="255"
                 required
               >
-              <p v-if="validationErrors.email" class="text-red-500 text-sm mt-1">{{ validationErrors.email }}</p>
+              <ErrorMessage :message="validationErrors.email" />
             </div>
             <div>
               <input 
                 type="tel" 
                 id="phone" 
                 v-model="formData.phone" 
-                class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="form-field form-field-optional"
                 placeholder="Phone (optional)"
+                maxlength="20"
+                pattern="[\+]?[0-9\s\-\(\)]*"
               >
+              <ErrorMessage :message="validationErrors.phone" />
             </div>
           </div>
           
@@ -262,21 +251,26 @@ onMounted(() => {
                 type="text" 
                 id="name" 
                 v-model="formData.name" 
-                class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                :class="{'border-red-500': validationErrors.name, 'border-gray-300': !validationErrors.name}"
-                placeholder="Name"
+                class="form-field"
+                :class="validationErrors.name ? 'form-field-error' : 'form-field-normal'"
+                placeholder="Full Name"
+                maxlength="255"
+                pattern="[A-Za-z0-9\s\-\.\,\#\&\/\(\)]*"
                 required
               >
-              <p v-if="validationErrors.name" class="text-red-500 text-sm mt-1">{{ validationErrors.name }}</p>
+              <ErrorMessage :message="validationErrors.name" />
             </div>
             <div>
               <input 
                 type="text" 
                 id="company" 
                 v-model="formData.company" 
-                class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="form-field form-field-optional"
                 placeholder="Company (optional)"
+                maxlength="255"
+                pattern="[A-Za-z0-9\s\-\.\,\#\&\/\(\)]*"
               >
+              <ErrorMessage :message="validationErrors.company" />
             </div>
           </div>
           
@@ -287,10 +281,13 @@ onMounted(() => {
               id="street" 
               v-model="formData.street" 
               placeholder="123 Main St"
-              :class="{'border-red-500': validationErrors.street, 'border-gray-300': !validationErrors.street}"
-              class="mt-1 block w-full rounded-md border px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+              class="form-field"
+              :class="validationErrors.street ? 'form-field-error' : 'form-field-normal'"
+              maxlength="500"
+              pattern="[A-Za-z0-9\s\-\.\,\#\&\/\(\)]*"
+              required
             />
-            <p v-if="validationErrors.street" class="text-red-500 text-sm mt-1">{{ validationErrors.street }}</p>
+            <ErrorMessage :message="validationErrors.street" />
           </div>
           
           <!-- Четвертый ряд: Апартаменты/Номер квартиры -->
@@ -300,8 +297,11 @@ onMounted(() => {
               id="house" 
               v-model="formData.house" 
               placeholder="Apt, Suite, Unit, etc. (optional)"
-              class="mt-1 block w-full rounded-md border px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+              class="form-field form-field-optional"
+              maxlength="255"
+              pattern="[A-Za-z0-9\s\-\.\,\#\&\/\(\)]*"
             />
+            <ErrorMessage :message="validationErrors.house" />
           </div>
           
           <!-- Пятый ряд: Город, Регион, Индекс -->
@@ -311,19 +311,21 @@ onMounted(() => {
                 type="text" 
                 id="city" 
                 v-model="formData.city" 
-                class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                :class="{'border-red-500': validationErrors.city, 'border-gray-300': !validationErrors.city}"
+                class="form-field"
+                :class="validationErrors.city ? 'form-field-error' : 'form-field-normal'"
                 placeholder="City"
+                maxlength="255"
+                pattern="[A-Za-z0-9\s\-\.\,\#\&\/\(\)]*"
                 required
               >
-              <p v-if="validationErrors.city" class="text-red-500 text-sm mt-1">{{ validationErrors.city }}</p>
+              <ErrorMessage :message="validationErrors.city" />
             </div>
             <div>
               <select 
                 id="state" 
                 v-model="formData.state" 
-                class="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                :class="{'border-red-500': validationErrors.state, 'border-gray-300': !validationErrors.state}"
+                class="form-field"
+                :class="validationErrors.state ? 'form-field-error' : 'form-field-normal'"
                 required
               >
                 <option value="" disabled>Select a state</option>
@@ -377,7 +379,7 @@ onMounted(() => {
                 <option value="Wisconsin">Wisconsin</option>
                 <option value="Wyoming">Wyoming</option>
               </select>
-              <p v-if="validationErrors.state" class="text-red-500 text-sm mt-1">{{ validationErrors.state }}</p>
+              <ErrorMessage :message="validationErrors.state" />
             </div>
             <div>
               <input 
@@ -385,10 +387,13 @@ onMounted(() => {
                 id="postal_code" 
                 v-model="formData.postal_code" 
                 placeholder="00000"
-                :class="{'border-red-500': validationErrors.postal_code, 'border-gray-300': !validationErrors.postal_code}"
-                class="mt-1 block w-full rounded-md border px-3 py-2 focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm"
+                class="form-field"
+                :class="validationErrors.postal_code ? 'form-field-error' : 'form-field-normal'"
+                maxlength="20"
+                pattern="[A-Za-z0-9\-\s]*"
+                required
               />
-              <p v-if="validationErrors.postal_code" class="text-red-500 text-sm mt-1">{{ validationErrors.postal_code }}</p>
+              <ErrorMessage :message="validationErrors.postal_code" />
             </div>
           </div>
           
@@ -409,10 +414,12 @@ onMounted(() => {
             <textarea 
               id="comment" 
               v-model="formData.comment" 
-              class="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+              class="form-field form-field-optional"
               rows="3"
               placeholder="Additional information for the courier"
+              maxlength="1000"
             ></textarea>
+            <ErrorMessage :message="validationErrors.comment" />
           </div>
         </div>
       </div>
@@ -439,12 +446,30 @@ onMounted(() => {
             <div class="border-t border-gray-200 pt-4">
               <div class="flex justify-between mb-2">
                 <span>Subtotal:</span>
-                <span>{{ subtotal.toFixed(2) }} $</span>
+                <span>{{ originalTotal.toFixed(2) }} $</span>
+              </div>
+              
+              <!-- Applied Coupons -->
+              <div v-if="appliedCoupons.length > 0" class="mb-2">
+                <div v-for="coupon in appliedCoupons" :key="coupon.id" class="flex justify-between text-sm text-green-600">
+                  <span class="flex items-center">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                    </svg>
+                    Discount (<span v-text="coupon.code"></span>):
+                  </span>
+                  <span class="font-medium">-{{ Math.floor(totalDiscount) }} $</span>
+                </div>
               </div>
               
               <div class="flex justify-between font-semibold text-lg mt-4">
                 <span>Total:</span>
-                <span>{{ subtotal.toFixed(2) }} $</span>
+                <span :class="{ 'text-green-600': totalDiscount > 0 }">
+                  <span v-if="totalDiscount > 0" class="text-gray-400 line-through text-sm mr-2">
+                    {{ originalTotal.toFixed(2) }} $
+                  </span>
+                  {{ Math.floor(finalTotal) }} $
+                </span>
               </div>
             </div>
           </div>

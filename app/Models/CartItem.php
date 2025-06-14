@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use App\Models\Cart; 
 
 class CartItem extends Model
 {
@@ -21,7 +22,7 @@ class CartItem extends Model
         'itemable_id',
         'itemable_type',
         'quantity',
-        'price',
+        'price', // ДОБАВЛЕНО
         'options',
     ];
     
@@ -33,6 +34,15 @@ class CartItem extends Model
     protected $casts = [
         'options' => 'array',
         'price' => 'decimal:2',
+        'quantity' => 'integer',
+    ];
+    
+    /**
+     * Validation rules
+     */
+    public static $rules = [
+        'quantity' => 'required|integer|min:1|max:100',
+        'price' => 'required|numeric|min:0.01|max:999999.99',
     ];
     
     /**

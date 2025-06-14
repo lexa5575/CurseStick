@@ -7,7 +7,7 @@
 <div class="container mx-auto px-4 py-8">
     <!-- Заголовок категории -->
     <div class="mb-8">
-        <h1 class="text-3xl font-bold mb-2">{{ $category->name }}</h1>
+        <h1 class="text-3xl font-bold mb-2">Buy {{ $category->name }} IQOS TEREA Sticks USA | Premium Tobacco</h1>
         <p class="text-gray-600">{{ $category->description }}</p>
     </div>
     
@@ -18,7 +18,7 @@
             <div class="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                 <a href="{{ route('products.show', $product) }}" class="block">
                     <div class="relative h-48 overflow-hidden">
-                        <img src="{{ $product->image_url ?? asset('images/placeholders/product-placeholder.jpg') }}" alt="{{ $product->name }}" class="w-full h-full object-cover">
+                        <img src="{{ $product->image_url ?? asset('images/placeholders/product-placeholder.jpg') }}" alt="Buy {{ $product->name }} IQOS TEREA Sticks USA - Premium Tobacco" class="w-full h-full object-cover">
                         @if((float)$product->discount > 0)
                         <div class="absolute top-2 right-2 bg-red-500 text-white text-xs font-bold px-2 py-1 rounded">
                             -{{ number_format($product->discount / $product->price * 100) }}%

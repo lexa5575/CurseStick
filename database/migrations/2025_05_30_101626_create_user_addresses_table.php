@@ -11,9 +11,6 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Сначала удаляем таблицу, если она существует
-        Schema::dropIfExists('user_addresses');
-        
         Schema::create('user_addresses', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();

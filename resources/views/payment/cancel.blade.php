@@ -1,6 +1,7 @@
 @extends('layouts.main')
 
-@section('title', 'Payment Cancelled')
+@section('title', 'Payment Cancelled | IQOS TEREA Order')
+@section('description', 'Payment for your IQOS TEREA sticks order was cancelled. No charges made. Return to cart or continue shopping for premium tobacco products.')
 
 @section('content')
 <div class="container mx-auto px-4 py-12">

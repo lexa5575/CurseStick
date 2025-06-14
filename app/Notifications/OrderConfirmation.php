@@ -21,11 +21,23 @@ class OrderConfirmation extends Notification
     protected $order;
 
     /**
+     * Расчет корзины с купонами
+     */
+    protected $calculation;
+
+    /**
+     * Примененные купоны
+     */
+    protected $appliedCoupons;
+
+    /**
      * Create a new notification instance.
      */
-    public function __construct($order)
+    public function __construct($order, $calculation = null, $appliedCoupons = [])
     {
         $this->order = $order;
+        $this->calculation = $calculation;
+        $this->appliedCoupons = $appliedCoupons;
     }
 
     /**
@@ -53,10 +65,13 @@ class OrderConfirmation extends Notification
         }
         
         return (new MailMessage)
-            ->subject('Спасибо за ваш заказ #' . $order->id)
+            ->subject('Thank you for your order #' . $order->id . ' - CruseStick')
             ->view('emails.orders.customer-confirmation', [
                 'order' => $order,
-                'zelleAddress' => $zelleAddress
+                'zelleAddress' => $zelleAddress,
+                'calculation' => $this->calculation,
+                'appliedCoupons' => $this->appliedCoupons,
+                'recipientEmail' => $order->email
             ]);
     }
 

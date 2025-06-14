@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php artisan tinker:*)",
+      "WebFetch(domain:laravel.com)",
+      "Bash(grep:*)"
+    ],
+    "deny": []
+  }
+}

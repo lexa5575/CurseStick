@@ -18,5 +18,4 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// API маршруты перенесены в web.php
-// Для добавления новых API маршрутов, используйте этот файл
+// API-маршруты для купонов перенесены в web.php для поддержки сессий

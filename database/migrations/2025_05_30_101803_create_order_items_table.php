@@ -13,14 +13,20 @@ return new class extends Migration
     {
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
+
+            // Поля из $fillable модели OrderItem
             $table->foreignId('order_id')->constrained()->onDelete('cascade');
             $table->foreignId('product_id')->constrained();
-            $table->unsignedInteger('quantity');
+            $table->unsignedTinyInteger('quantity');
+
+            // Системные поля
             $table->decimal('price', 10, 2);
             $table->decimal('discount', 10, 2)->default(0);
-            $table->json('options')->nullable();
+            $table->string('product_name'); // Название на момент заказа
+            $table->string('product_sku')->nullable(); // Артикул
+
             $table->timestamps();
-            
+
             // Индексы
             $table->index('order_id');
             $table->index('product_id');

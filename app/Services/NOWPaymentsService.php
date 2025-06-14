@@ -18,7 +18,7 @@ class NOWPaymentsService
         $this->apiKey = config('nowpayments.api_key');
         $this->apiUrl = config('nowpayments.api_url');
         
-        // Проверяем наличие API ключа
+        // Check for API key presence
         if (empty($this->apiKey)) {
             throw new \Exception('NOWPayments API key is not configured. Please add NOWPAYMENTS_API_KEY to your .env file.');
         }
@@ -59,8 +59,8 @@ class NOWPaymentsService
                 'order_id' => (string)$params['order_id'],
                 'order_description' => $params['order_description'] ?? 'Order #' . $params['order_id'],
                 'ipn_callback_url' => $params['callback_url'] ?? null,
-                'success_url' => $params['success_url'] ?? route('home'),
-                'cancel_url' => $params['cancel_url'] ?? route('cart.index'),
+                'success_url' => $params['success_url'] ?? route('payment.success'),
+                'cancel_url' => $params['cancel_url'] ?? route('payment.cancel'),
             ];
 
             // Send request to create invoice
@@ -80,17 +80,21 @@ class NOWPaymentsService
                 'order_id' => $params['order_id'] ?? null
             ];
             
-            // Пытаемся получить детали ошибки из ответа
+            // Try to get error details from response
             if ($e->hasResponse() && $response = $e->getResponse()) {
                 $body = $response->getBody()->getContents();
-                $errorDetails['response_body'] = $body;
                 $errorDetails['status_code'] = $response->getStatusCode();
                 
-                // Пытаемся декодировать JSON ответ
+                // Try to decode JSON response for error message only
                 $jsonError = json_decode($body, true);
                 if ($jsonError && isset($jsonError['message'])) {
                     $errorMessage .= ': ' . $jsonError['message'];
+                    // Log only the error message, not the full response
+                    $errorDetails['api_error_message'] = $jsonError['message'];
                 }
+                
+                // DO NOT log the full response body for security reasons
+                $errorDetails['response_logged'] = 'Response body hidden for security';
             }
             
             Log::error('NOWPayments API error', $errorDetails);

@@ -1,6 +1,7 @@
 @extends('layouts.main')
 
-@section('title', 'Order Confirmation')
+@section('title', 'Order Confirmation | IQOS TEREA Sticks Order Details')
+@section('description', 'Your IQOS TEREA sticks order has been placed successfully. View order details, shipping information, and track your delivery status.')
 
 @section('content')
 <div class="container mx-auto px-4 py-8">
@@ -34,8 +35,8 @@
                     <p><span class="font-medium">4.</span> If you have any questions, please contact our support team.</p>
                 @else
                     {{-- Instructions for other payment methods (Zelle, etc.) --}}
-                    <p><span class="font-medium">1.</span> An email with order details and payment instructions has been sent to <span class="font-semibold">{{ $order->email }}</span>.</p>
-                    <p><span class="font-medium">2.</span> Please follow the payment instructions for your selected payment method: <span class="font-semibold">{{ ucfirst($order->payment_method) }}</span>.</p>
+                    <p><span class="font-medium">1.</span> An email with order details has been sent to <span class="font-semibold">{{ $order->email }}</span>.</p>
+                    <p><span class="font-medium">2.</span> You have selected <span class="font-semibold">{{ ucfirst($order->payment_method) }}</span> as your payment method.</p>
                     <p><span class="font-medium">3.</span> Once your payment is confirmed, we will process your order and ship it.</p>
                     <p><span class="font-medium">4.</span> A tracking number will be emailed to you when your order ships.</p>
                 @endif

@@ -11,42 +11,44 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Сначала удаляем таблицу, если она существует
-        Schema::dropIfExists('orders');
-        
         Schema::create('orders', function (Blueprint $table) {
             $table->id();
+            $table->string('order_number')->unique(); // Unique order number for clients
+
+            // System fields (NOT in $fillable - set programmatically)
             $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete();
+            $table->decimal('total', 10, 2)->default(0); // Calculated from order_items
+            $table->string('payment_status')->default('pending'); // Set by controller
+            $table->string('payment_invoice_id')->nullable(); // Set by payment system
+            $table->string('payment_token', 64)->unique()->nullable(); // Secure token for payment URL
+            $table->string('tracking_number')->nullable(); // Set by admin
+
+
+            // Fields from Order model $fillable (safe for mass assignment)
             $table->string('status')->default('pending');
-            $table->decimal('total', 10, 2);
-            
-            // Контактная информация
             $table->string('name');
-            $table->string('email');
-            $table->string('phone')->nullable();
             $table->string('company')->nullable();
-            
-            // Адрес доставки
-            $table->string('street'); // Соответствует полю 'address' в форме
-            $table->string('house')->nullable(); // Делаем house nullable, соответствует addressUnit
+            $table->string('street');
+            $table->string('house')->nullable();
             $table->string('city');
-            $table->string('state'); // Делаем state обязательным
-            $table->string('postal_code'); // Соответствует zipcode в форме
+            $table->string('state');
+            $table->string('postal_code');
             $table->string('country');
-            
-            // Дополнительная информация
+            $table->string('phone')->nullable();
+            $table->string('email');
             $table->text('comment')->nullable();
             $table->string('payment_method')->nullable();
-            $table->string('payment_status')->default('pending');
-            // tracking_number убран по запросу
-            
+
             $table->timestamps();
-            
-            // Индексы для быстрого поиска и фильтрации
+
+            // Indexes for fast search and filtering
             $table->index('user_id');
             $table->index('status');
             $table->index('payment_status');
+            $table->index('payment_token'); // For fast token-based search
             $table->index('created_at');
+            // Composite index for frequent queries
+            $table->index(['user_id', 'status', 'created_at']);
         });
     }
 

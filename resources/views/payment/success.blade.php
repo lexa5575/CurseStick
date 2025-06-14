@@ -1,6 +1,7 @@
 @extends('layouts.main')
 
-@section('title', 'Payment Successful')
+@section('title', 'Payment Successful | IQOS TEREA Order Confirmed')
+@section('description', 'Your IQOS TEREA sticks payment was successful. Order confirmed and will be shipped within 24-48 hours via USPS to your address in USA.')
 
 @section('content')
 <div class="container mx-auto px-4 py-12">

@@ -25,14 +25,14 @@ class Banner extends Model
         'overlay_color',
         'subtitle',
     ];
-    
+
     /**
      * Добавляем атрибуты, которые должны быть доступны для сериализации JSON
      *
      * @var array
      */
     protected $appends = ['image_url'];
-    
+
     /**
      * Получить URL изображения
      *
@@ -45,7 +45,14 @@ class Banner extends Model
             // Для отладки выводим полный абсолютный URL
             return url(Storage::url($this->image));
         }
-        
+
         return asset('images/banners/default-banner.jpg');
+    }
+    /**
+     * Scope для активных баннеров
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('is_active', true)->orderBy('order');
     }
 }

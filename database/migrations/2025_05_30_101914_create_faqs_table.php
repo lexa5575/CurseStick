@@ -11,26 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Очищаем таблицу, если существует
-        Schema::dropIfExists('faqs');
-
         Schema::create('faqs', function (Blueprint $table) {
             $table->id();
             
-            // Поля из $fillable модели
+            // Поля из $fillable модели Faq
             $table->string('question');
             $table->text('answer');
-            $table->boolean('is_active')->default(true);
             $table->integer('order')->default(0);
+            $table->boolean('is_active')->default(true);
             
-            // Дополнительные поля, которых нет в $fillable модели
-            // Уже отмечено как nullable, оставляем как есть
-            $table->string('category')->nullable();
             $table->timestamps();
             
             // Индексы
             $table->index('is_active');
-            $table->index('category');
             $table->index('order');
         });
     }

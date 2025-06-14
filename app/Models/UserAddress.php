@@ -9,8 +9,11 @@ class UserAddress extends Model
 {
     use HasFactory;
 
+    /**
+     * ИСПРАВЛЕНИЕ: убрали user_id из $fillable (небезопасно!)
+     * user_id устанавливается программно: auth()->id()
+     */
     protected $fillable = [
-        'user_id',
         'street',
         'house',
         'city',
@@ -23,4 +26,4 @@ class UserAddress extends Model
     {
         return $this->belongsTo(User::class);
     }
-} 
+}

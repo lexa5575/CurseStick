@@ -6,7 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Cart;
 use App\Models\CartItem;
 use App\Models\Product;
-use Illuminate\Http\Request;
+use App\Http\Requests\AddToCartRequest;
+use App\Http\Requests\UpdateCartItemRequest;
 
 class CartController extends Controller
 {
@@ -37,15 +38,11 @@ class CartController extends Controller
         $cart = $this->getCart();
         $items = [];
         $total = 0;
-        
-        // Подготавливаем cookie для ответа
-        $cookie = null;
-        if ($cart) {
-            $cookie = cookie()->forever('cruisestick_cart_id', $cart->id);
-        }
 
+        // Проверяем что корзина существует перед получением товаров
         if ($cart) {
-            $cartItems = $cart->items()->with('itemable')->get();
+            // Оптимизированная загрузка с eager loading для избежания N+1
+            $cartItems = $cart->items()->with(['itemable.category'])->get();
 
             foreach ($cartItems as $item) {
                 if ($item->itemable instanceof Product) {
@@ -57,7 +54,7 @@ class CartController extends Controller
                         'id' => $product->id,
                         'name' => $product->name,
                         'image' => $product->image ?? '/images/placeholder.jpg',
-                        'image_url' => $product->image_url, // Добавляем атрибут image_url
+                        'image_url' => $product->image_url,
                         'price' => (float) ($product->discount ? ($product->price - $product->discount) : $product->price),
                         'category' => [
                             'id' => $product->category ? $product->category->id : null,
@@ -76,10 +73,67 @@ class CartController extends Controller
             }
         }
 
+        // Get coupon calculation if cart exists
+        $couponData = [];
+        $finalTotal = $total;
+        $totalDiscount = 0;
+        $itemDiscounts = [];
+        
+        if ($cart) {
+            $couponService = app(\App\Services\CouponService::class);
+            $calculation = $couponService->getCurrentCartCalculation($cart);
+            $appliedCoupons = $couponService->getAppliedCoupons();
+            
+            $finalTotal = $calculation['final_total'];
+            $totalDiscount = $calculation['total_discount'];
+            $itemDiscounts = $calculation['item_discounts'];
+            
+            // Create item discount lookup for easy access
+            $itemDiscountLookup = [];
+            foreach ($itemDiscounts as $discount) {
+                $itemDiscountLookup[$discount['item_id']] = $discount;
+            }
+            
+            // Update items with individual discount information
+            foreach ($items as &$item) {
+                if (isset($itemDiscountLookup[$item['id']])) {
+                    $discountInfo = $itemDiscountLookup[$item['id']];
+                    $item['discount_amount'] = floor($discountInfo['discount_amount']);
+                    $item['final_total'] = (float) $discountInfo['final_total'];
+                    $item['has_discount'] = $discountInfo['discount_amount'] > 0;
+                } else {
+                    $item['discount_amount'] = 0.0;
+                    $item['final_total'] = (float) $item['total'];
+                    $item['has_discount'] = false;
+                }
+            }
+            
+            if (!empty($appliedCoupons)) {
+                $couponData = [
+                    'applied_coupons' => array_map(function($coupon) {
+                        return [
+                            'id' => $coupon->id,
+                            'code' => $coupon->code,
+                            'name' => $coupon->name,
+                            'discount_type' => $coupon->discount_type,
+                            'discount_value' => $coupon->discount_value,
+                        ];
+                    }, $appliedCoupons),
+                    'total_discount' => floor($totalDiscount),
+                    'original_total' => $total,
+                    'final_total' => $finalTotal,
+                    'item_discounts' => $itemDiscounts
+                ];
+            }
+        }
+
         return response()->json([
             'items' => $items,
             'total' => (float) $total,
-            'count' => count($items)
+            'final_total' => (float) $finalTotal,
+            'total_discount' => floor($totalDiscount),
+            'count' => count($items),
+            'coupons' => $couponData
         ]);
     }
 
@@ -87,17 +141,17 @@ class CartController extends Controller
      * Добавить товар в корзину
      * Маршрут: POST /api/cart/add/{productId}
      */
-    public function add($productId, Request $request)
+    public function add($productId, AddToCartRequest $request)
     {
         try {
-            $product = Product::findOrFail($productId);
+            // Проверяем что товар существует и активен
+            $product = Product::where('id', $productId)
+                ->where('is_active', true)
+                ->firstOrFail();
 
-            // Валидация количества товара
-            $quantity = (int) $request->input('quantity', 1);
-            if ($quantity < 1) {
-                $quantity = 1;
-            }
-            
+            // Получаем валидированное количество из Form Request
+            $quantity = $request->validated()['quantity'];
+
             // Получаем или создаем корзину
             $cart = $this->getOrCreateCart();
 
@@ -108,55 +162,47 @@ class CartController extends Controller
                 ->first();
 
             if ($existingItem) {
-                // Если товар уже есть, увеличиваем количество
-                $existingItem->quantity += $quantity;
+                // Проверяем не превысит ли новое количество лимит (100 из Form Request)
+                $newQuantity = $existingItem->quantity + $quantity;
+                if ($newQuantity > 100) { // Лимит из AddToCartRequest
+                    return $this->handleError(
+                        $request,
+                        'Максимальное количество товара: 100',
+                        400
+                    );
+                }
+
+                $existingItem->quantity = $newQuantity;
                 $existingItem->save();
                 $itemId = $existingItem->id;
             } else {
-                // Если товара еще нет, добавляем новый
-                $cartItem = $cart->items()->create([
-                    'itemable_id' => $product->id,
-                    'itemable_type' => get_class($product),
-                    'quantity' => $quantity,
-                    'price' => $product->discount ? ($product->price - $product->discount) : $product->price,
-                ]);
+                // Безопасное создание нового товара в корзине
+                $cartItem = new CartItem();
+                $cartItem->cart_id = $cart->id;
+                $cartItem->itemable_id = $product->id;
+                $cartItem->itemable_type = get_class($product);
+                $cartItem->quantity = $quantity;
+                $cartItem->price = $product->discount ?
+                    ($product->price - $product->discount) : $product->price;
+                $cartItem->save();
+
                 $itemId = $cartItem->id;
             }
-            
-            // Убедимся, что изменения сохранены в сессии
-            session()->save();
 
             // Возвращаем количество товаров в корзине
             $count = $cart->items()->sum('quantity');
-            
-            // Получаем обновленный элемент корзины
+
+            // Получаем обновленный элемент корзины с оптимизированной загрузкой
             $updatedItem = $cart->items()
-                ->with('itemable')
+                ->with(['itemable.category'])
                 ->where('id', $itemId)
                 ->first();
-            
+
             // Подготавливаем данные товара для ответа
-            $itemData = null;
-            if ($updatedItem && $updatedItem->itemable instanceof Product) {
-                $product = $updatedItem->itemable;
-                $itemData = [
-                    'id' => $updatedItem->id,
-                    'product' => [
-                        'id' => $product->id,
-                        'name' => $product->name,
-                        'image' => $product->image ?? '/images/placeholder.jpg',
-                        'category' => [
-                            'id' => $product->category ? $product->category->id : null,
-                            'name' => $product->category ? $product->category->name : 'Без категории'
-                        ]
-                    ],
-                    'quantity' => $updatedItem->quantity,
-                    'price' => (float) $updatedItem->price,
-                    'total' => (float) ($updatedItem->quantity * $updatedItem->price)
-                ];
-            }
-            
-            $successMessage = $existingItem ? 'Количество товара в корзине увеличено' : 'Товар добавлен в корзину';
+            $itemData = $this->formatCartItemData($updatedItem);
+
+            $successMessage = $existingItem ?
+                'Количество товара в корзине увеличено' : 'Товар добавлен в корзину';
 
             // Подготавливаем данные для ответа
             $response = [
@@ -166,39 +212,20 @@ class CartController extends Controller
                 'item' => $itemData,
                 'message' => $successMessage
             ];
-            
-            // Явно сохраняем сессию и фиксируем её
-            session()->save();
-            
-            // Устанавливаем cookie с ID корзины
-            $cookie = cookie()->forever('cruisestick_cart_id', $cart->id);
-            
 
+            return $this->handleSuccessResponse($request, $response, $successMessage);
             
-            // Проверяем, является ли запрос AJAX-запросом
-            if ($request->ajax() || $request->wantsJson()) {
-                // Если это AJAX-запрос, возвращаем JSON с cookie
-                return response()->json($response)->withCookie($cookie);
-            } else {
-                // Если это обычный запрос, перенаправляем назад с сообщением
-                return redirect()->back()->with('success', $successMessage);
-            }
         } catch (\Exception $e) {
-            // Обработка ошибок
             $errorMessage = 'Произошла ошибка при добавлении товара в корзину: ' . $e->getMessage();
-            
-            
-            // Проверяем, является ли запрос AJAX-запросом
-            if ($request->ajax() || $request->wantsJson()) {
-                // Если это AJAX-запрос, возвращаем JSON
-                return response()->json([
-                    'success' => false,
-                    'message' => $errorMessage
-                ], 500);
-            } else {
-                // Если это обычный запрос, перенаправляем назад с сообщением
-                return redirect()->back()->with('error', $errorMessage);
-            }
+
+            // Логируем ошибку
+            \Log::error('Error adding item to cart: ' . $e->getMessage(), [
+                'product_id' => $productId,
+                'quantity' => $request->input('quantity', 1),
+                'exception' => $e
+            ]);
+
+            return $this->handleError($request, $errorMessage);
         }
     }
 
@@ -206,7 +233,7 @@ class CartController extends Controller
      * Обновить количество товара в корзине
      * Маршрут: PATCH /api/cart/items/{id}
      */
-    public function update(Request $request, $itemId)
+    public function update(UpdateCartItemRequest $request, $itemId)
     {
         try {
             $cart = $this->getCart();
@@ -215,11 +242,8 @@ class CartController extends Controller
                 return response()->json(['error' => 'Корзина не найдена'], 404);
             }
 
-            $quantity = $request->input('quantity');
-
-            if (!is_numeric($quantity) || $quantity < 1) {
-                return response()->json(['error' => 'Неверное количество'], 400);
-            }
+            // Получаем валидированное количество из Form Request
+            $quantity = $request->validated()['quantity'];
 
             $item = $cart->items()->find($itemId);
 
@@ -229,10 +253,7 @@ class CartController extends Controller
 
             $item->quantity = $quantity;
             $item->save();
-            
-            // Сохраняем изменения в сессии
-            session()->save();
-            
+
             // Подсчитываем общее количество товаров в корзине
             $count = $cart->items()->sum('quantity');
             $itemTotal = $item->price * $quantity;
@@ -245,17 +266,16 @@ class CartController extends Controller
                 'count' => (int) $count,
                 'message' => 'Количество товара успешно обновлено'
             ]);
-        } catch (\Exception $e) {
-            // Обработка ошибок
-            $errorMessage = 'Произошла ошибка при обновлении количества товара: ' . $e->getMessage();
             
-            // Записываем ошибку в лог
+        } catch (\Exception $e) {
+            $errorMessage = 'Произошла ошибка при обновлении количества товара: ' . $e->getMessage();
+
             \Log::error('Error updating cart item: ' . $e->getMessage(), [
                 'item_id' => $itemId,
-                'quantity' => $quantity ?? 1,
+                'quantity' => $request->input('quantity'),
                 'exception' => $e
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $errorMessage
@@ -283,10 +303,7 @@ class CartController extends Controller
             }
 
             $item->delete();
-            
-            // Сохраняем изменения в сессии
-            session()->save();
-            
+
             // Подсчитываем общее количество товаров в корзине после удаления
             $count = $cart->items()->sum('quantity');
             $itemsCount = $cart->items()->count();
@@ -298,119 +315,127 @@ class CartController extends Controller
                 'items_count' => (int) $itemsCount,
                 'message' => 'Товар успешно удален из корзины'
             ]);
-        } catch (\Exception $e) {
-            // Обработка ошибок
-            $errorMessage = 'Произошла ошибка при удалении товара из корзины: ' . $e->getMessage();
             
-            // Записываем ошибку в лог
+        } catch (\Exception $e) {
+            $errorMessage = 'Произошла ошибка при удалении товара из корзины: ' . $e->getMessage();
+
             \Log::error('Error removing item from cart: ' . $e->getMessage(), [
                 'item_id' => $itemId,
                 'exception' => $e
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => $errorMessage
             ], 500);
         }
     }
-    
+
     /**
      * Получить текущую корзину пользователя
      */
     protected function getCart()
     {
-        // Проверяем cookie с ID корзины
-        $cookieCartId = request()->cookie('cruisestick_cart_id');
-        
         $userId = auth()->id();
         $sessionId = session()->getId();
-        
-        // Пробуем получить ID корзины из сессии или cookie
-        $cartId = session('cart_id') ?: $cookieCartId;
-        
-        $cart = null;
-        
-        // Сначала пробуем найти корзину по ID из сессии
-        if ($cartId) {
-            $cart = Cart::find($cartId);
+
+        // Для авторизованных пользователей ищем по user_id
+        if ($userId) {
+            $cart = Cart::where('user_id', $userId)
+                ->where('expires_at', '>', now())  // Проверяем срок действия
+                ->first();
             
-            // Если нашли, обновляем session_id
-            if ($cart) {
+            // If cart found but has different session_id, update it to current session
+            if ($cart && $cart->session_id !== $sessionId) {
                 $cart->session_id = $sessionId;
                 $cart->save();
-                return $cart;
+                
+                // Update session with cart_id for compatibility
+                session(['cart_id' => $cart->id]);
             }
+            
+            return $cart;
         }
-        
-        // Затем пробуем найти по пользователю
-        if ($userId) {
-            $cart = Cart::where('user_id', $userId)->first();
-        }
-        
-        // Если не нашли, пробуем найти по session_id
-        if (!$cart && $sessionId) {
-            $cart = Cart::where('session_id', $sessionId)->first();
-        }
-        
-        // Сохраняем ID корзины в сессию для будущих запросов
-        if ($cart) {
-            session(['cart_id' => $cart->id]);
-            session()->save();
-        }
-        
-        return $cart;
+
+        // Для гостей ищем по session_id
+        return Cart::where('session_id', $sessionId)
+            ->where('expires_at', '>', now())  // Проверяем срок действия
+            ->first();
     }
-    
+
     /**
      * Получить существующую или создать новую корзину
      */
     protected function getOrCreateCart()
     {
-        $userId = auth()->id();
-        $sessionId = session()->getId();
-        
-        // Отладочная информация перед созданием корзины
-        
-        // Убедимся, что сессия сохранена
-        session()->save();
-        
-        // Пробуем найти существующую корзину
         $cart = $this->getCart();
-        
-        // Если корзина найдена, просто возвращаем её
+
         if ($cart) {
+            // Обновляем срок действия корзины при активности
+            $cart->expires_at = now()->addDays(30);
+            $cart->save();
             return $cart;
         }
-        
-        // Иначе создаем новую корзину
-        if ($userId) {
-            // Для авторизованных пользователей
-            $cart = Cart::create([
-                'user_id' => $userId,
-                'session_id' => $sessionId
-            ]);
-        } else {
-            // Для гостей
-            $cart = Cart::create([
-                'user_id' => null,
-                'session_id' => $sessionId
-            ]);
-        }
-        
-        // Сохраняем ID корзины в сессию
-        session(['cart_id' => $cart->id]);
-        
-        // Обновляем cookie
-        cookie()->queue(
-            'cart_session', 
-            $cart->id, 
-            60 * 24 * 30  // 30 дней
-        );
-        
-        session()->save();
-        
-        
+
+        // Безопасное создание корзины
+        $cart = new Cart();
+        $cart->user_id = auth()->id();
+        $cart->session_id = session()->getId();
+        $cart->expires_at = now()->addDays(30);
+        $cart->save();
+
         return $cart;
+    }
+
+    /**
+     * Обработка ошибок с учетом типа запроса
+     */
+    private function handleError($request, $message, $code = 500)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json(['success' => false, 'message' => $message], $code);
+        }
+
+        return redirect()->back()->with('error', $message);
+    }
+
+    /**
+     * Обработка успешного ответа с учетом типа запроса
+     */
+    private function handleSuccessResponse($request, $jsonResponse, $message)
+    {
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json($jsonResponse);
+        }
+
+        return redirect()->back()->with('success', $message);
+    }
+
+    /**
+     * Форматирование данных товара в корзине
+     */
+    private function formatCartItemData($cartItem)
+    {
+        if (!$cartItem || !($cartItem->itemable instanceof Product)) {
+            return null;
+        }
+
+        $product = $cartItem->itemable;
+
+        return [
+            'id' => $cartItem->id,
+            'product' => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'image' => $product->image ?? '/images/placeholder.jpg',
+                'category' => [
+                    'id' => $product->category ? $product->category->id : null,
+                    'name' => $product->category ? $product->category->name : 'Без категории'
+                ]
+            ],
+            'quantity' => $cartItem->quantity,
+            'price' => (float) $cartItem->price,
+            'total' => (float) ($cartItem->quantity * $cartItem->price)
+        ];
     }
 }

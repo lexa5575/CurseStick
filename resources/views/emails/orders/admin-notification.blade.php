@@ -1,203 +1,167 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Новый заказ на сайте</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-        }
-        .container {
-            padding: 20px;
-            background-color: #f9f9f9;
-        }
-        .header {
-            background-color: #2d3748;
-            color: white;
-            padding: 15px;
-            text-align: center;
-        }
-        .footer {
-            margin-top: 30px;
-            padding: 15px;
-            text-align: center;
-            font-size: 12px;
-            color: #888;
-        }
-        .order-details {
-            margin: 20px 0;
-            border: 1px solid #ddd;
-            padding: 15px;
-            background-color: white;
-        }
-        .items-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        .items-table th, .items-table td {
-            border: 1px solid #ddd;
-            padding: 8px 12px;
-            text-align: left;
-            vertical-align: middle;
-        }
-        .items-table th {
-            background-color: #f2f2f2;
-        }
-        .total {
-            margin-top: 20px;
-            text-align: right;
-            font-weight: bold;
-        }
-        .product-image {
-            width: 80px;
-            height: auto;
-            border-radius: 4px;
-            border: 1px solid #eee;
-        }
-        .product-info {
-            display: flex;
-            align-items: center;
-        }
-        .product-details {
-            margin-left: 10px;
-        }
-        .discount-badge {
-            display: inline-block;
-            background-color: #e53e3e;
-            color: white;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-size: 12px;
-            margin-left: 5px;
-        }
-        .original-price {
-            text-decoration: line-through;
-            color: #777;
-            font-size: 90%;
-        }
-        .alert {
-            background-color: #f8d7da;
-            color: #721c24;
-            padding: 10px;
-            margin: 15px 0;
-            border: 1px solid #f5c6cb;
-            border-radius: 4px;
-        }
-        .customer-info {
-            background-color: #e2f0d9;
-            padding: 10px;
-            margin: 15px 0;
-            border: 1px solid #c6e0b4;
-            border-radius: 4px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>Новый заказ на сайте</h1>
-        </div>
-        
-        <div class="alert">
-            <p><strong>Требуется внимание!</strong> На сайте был оформлен новый заказ #{{ $order->id }}.</p>
-        </div>
-        
-        <div class="order-details">
-            <h2>Информация о заказе #{{ $order->id }}</h2>
-            <p><strong>Дата заказа:</strong> {{ $order->created_at->format('d.m.Y H:i') }} UTC</p>
-            <p><strong>Способ оплаты:</strong> {{ ucfirst($order->payment_method) }}</p>
-            <p><strong>Статус оплаты:</strong> {{ $order->payment_status }}</p>
-            <p><strong>Общая стоимость:</strong> ${{ number_format($order->total, 2) }}</p>
-            
-            <div class="customer-info">
-                <h3>Информация о клиенте:</h3>
-                <p><strong>Имя:</strong> {{ $order->name }}</p>
-                <p><strong>Email:</strong> {{ $order->email }}</p>
-                @if($order->phone)
-                <p><strong>Телефон:</strong> {{ $order->phone }}</p>
-                @endif
-                @if($order->company)
-                <p><strong>Компания:</strong> {{ $order->company }}</p>
-                @endif
-            </div>
-            
-            <h3>Адрес доставки:</h3>
-            <p>
-                {{ $order->street }} @if($order->house), {{ $order->house }}@endif<br>
-                {{ $order->city }}, {{ $order->state }} {{ $order->postal_code }}<br>
-                {{ $order->country }}
-            </p>
-            
-            @if($order->comment)
-            <h3>Комментарий к заказу:</h3>
-            <p>{{ $order->comment }}</p>
-            @endif
-            
-            <h3>Заказанные товары:</h3>
-            <table class="items-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Товар</th>
-                        <th>Количество</th>
-                        <th>Цена</th>
-                        <th>Итого</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach($order->items as $item)
-                    <tr>
-                        <td>{{ $item->product->id }}</td>
-                        <td>
-                            <div class="product-info">
-                                @php
-                                    // Получаем полный URL изображения для email
-                                    $imageUrl = $item->product->image_url;
-                                    // Если это относительный путь, добавляем домен
-                                    if (!str_starts_with($imageUrl, 'http')) {
-                                        $imageUrl = config('app.url') . '/' . ltrim($imageUrl, '/');
-                                    }
-                                @endphp
-                                <img src="{{ $imageUrl }}" alt="{{ $item->product->name }}" class="product-image">
-                                <div class="product-details">
-                                    {{ $item->product->name }}
-                                    @if($item->product->discount > 0)
-                                        <span class="discount-badge">СКИДКА</span>
-                                    @endif
-                                </div>
-                            </div>
-                        </td>
-                        <td>{{ $item->quantity }}</td>
-                        <td>
-                            @if($item->product->discount > 0)
-                                <span class="original-price">${{ number_format($item->product->price, 2) }}</span><br>
-                                ${{ number_format($item->product->price - $item->product->discount, 2) }}
-                            @else
-                                ${{ number_format($item->price, 2) }}
-                            @endif
-                        </td>
-                        <td>${{ number_format($item->price * $item->quantity, 2) }}</td>
-                    </tr>
-                    @endforeach
-                </tbody>
-            </table>
-            
-            <div class="total">
-                <p>Общая стоимость заказа: ${{ number_format($order->total, 2) }}</p>
-            </div>
-        </div>
-        
-        <p>Пожалуйста, обработайте заказ как можно скорее.</p>
-        
-        <div class="footer">
-            <p>Это автоматическое уведомление. Пожалуйста, не отвечайте на это письмо.</p>
-            <p>&copy; {{ date('Y') }} CruseStick. Все права защищены.</p>
-        </div>
+@extends('emails.layouts.modern')
+
+@section('title', 'New Order Alert - CruseStick Admin')
+
+@section('header', '🔔 New Order Received')
+
+@section('content')
+    <div class="info-box warning">
+        <h4 style="color: #2d3748 !important; font-size: 16px !important; font-weight: 600 !important;">⚠️ Action Required</h4>
+        <p style="color: #4a5568 !important; font-size: 14px !important; font-weight: normal !important;">A new order has been placed on the website and requires your attention.</p>
     </div>
-</body>
-</html>
+    
+    <h2 style="color: #2d3748 !important; font-size: 22px !important; font-weight: 600 !important;">Order #{{ $order->id }} Details</h2>
+    
+    <div class="info-box">
+        <h4 style="color: #2d3748 !important; font-size: 16px !important; font-weight: 600 !important;">Order Summary</h4>
+        <p style="color: #4a5568 !important; font-size: 14px !important; font-weight: normal !important;"><strong style="color: #2d3748 !important; font-weight: 600 !important;">Order Number:</strong> #{{ $order->id }}</p>
+        <p style="color: #4a5568 !important; font-size: 14px !important; font-weight: normal !important;"><strong style="color: #2d3748 !important; font-weight: 600 !important;">Order Date:</strong> {{ $order->created_at->format('F j, Y \a\t g:i A') }} UTC</p>
+        <p style="color: #4a5568 !important; font-size: 14px !important; font-weight: normal !important;"><strong style="color: #2d3748 !important; font-weight: 600 !important;">Payment Method:</strong> {{ ucfirst($order->payment_method) }}</p>
+        <p style="color: #4a5568 !important; font-size: 14px !important; font-weight: normal !important;"><strong style="color: #2d3748 !important; font-weight: 600 !important;">Payment Status:</strong> {{ ucfirst($order->payment_status) }}</p>
+        <p style="color: #4a5568 !important; font-size: 14px !important; font-weight: normal !important;"><strong style="color: #2d3748 !important; font-weight: 600 !important;">Total Amount:</strong> ${{ number_format($order->total, 2) }}</p>
+    </div>
+    
+    <div class="info-box success">
+        <h4 style="color: #2d3748 !important; font-size: 16px !important; font-weight: 600 !important;">Customer Information</h4>
+        <p style="color: #4a5568 !important; font-size: 14px !important; font-weight: normal !important;"><strong style="color: #2d3748 !important; font-weight: 600 !important;">Name:</strong> {{ $order->name }}</p>
+        <p style="color: #4a5568 !important; font-size: 14px !important; font-weight: normal !important;"><strong style="color: #2d3748 !important; font-weight: 600 !important;">Email:</strong> {{ $order->email }}</p>
+        @if($order->phone)
+        <p style="color: #4a5568 !important; font-size: 14px !important; font-weight: normal !important;"><strong style="color: #2d3748 !important; font-weight: 600 !important;">Phone:</strong> {{ $order->phone }}</p>
+        @endif
+        @if($order->company)
+        <p style="color: #4a5568 !important; font-size: 14px !important; font-weight: normal !important;"><strong style="color: #2d3748 !important; font-weight: 600 !important;">Company:</strong> {{ $order->company }}</p>
+        @endif
+    </div>
+    
+    <h3 style="color: #2d3748 !important; font-size: 18px !important; font-weight: 600 !important;">Shipping Address</h3>
+    <div class="shipping-address">
+        <h4 style="color: #2d3748 !important; font-size: 16px !important; font-weight: 600 !important;">Delivery Address</h4>
+        <p style="color: #4a5568 !important; font-size: 14px !important; font-weight: normal !important;">
+            {{ $order->street }}@if($order->house), {{ $order->house }}@endif<br>
+            {{ $order->city }}, {{ $order->state }} {{ $order->postal_code }}<br>
+            {{ $order->country }}
+        </p>
+    </div>
+    
+    @if($order->comment)
+    <div class="info-box">
+        <h4 style="color: #2d3748 !important; font-size: 16px !important; font-weight: 600 !important;">Order Notes</h4>
+        <p style="color: #4a5568 !important; font-size: 14px !important; font-weight: normal !important;">{{ $order->comment }}</p>
+    </div>
+    @endif
+    
+    <h3 style="color: #2d3748 !important; font-size: 18px !important; font-weight: 600 !important;">Ordered Products</h3>
+    <table class="order-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach($order->items as $item)
+            <tr>
+                <td><strong>{{ $item->product->id }}</strong></td>
+                <td>
+                    <div class="product-cell">
+                        @php
+                            $imageUrl = $item->product->image_url;
+                            if (!str_starts_with($imageUrl, 'http')) {
+                                $imageUrl = config('app.url') . '/' . ltrim($imageUrl, '/');
+                            }
+                        @endphp
+                        <img src="{{ $imageUrl }}" alt="{{ $item->product->name }}" class="product-image">
+                        <div class="product-details">
+                            <h5>{{ $item->product->name }}</h5>
+                            @if($item->product->discount > 0)
+                                <span class="badge">SALE</span>
+                            @endif
+                        </div>
+                    </div>
+                </td>
+                <td>{{ $item->quantity }}</td>
+                <td>
+                    @if($item->product->discount > 0)
+                        <span style="text-decoration: line-through; color: #777; font-size: 90%;">${{ number_format($item->product->price, 2) }}</span><br>
+                        ${{ number_format($item->product->price - $item->product->discount, 2) }}
+                    @else
+                        ${{ number_format($item->price, 2) }}
+                    @endif
+                </td>
+                <td><strong>${{ number_format($item->price * $item->quantity, 2) }}</strong></td>
+            </tr>
+            @endforeach
+        </tbody>
+    </table>
+    
+    <div class="total-section">
+        @if(isset($calculation) && isset($appliedCoupons) && !empty($appliedCoupons))
+            <div class="total-row">
+                <span>Subtotal:</span>
+                <span>${{ number_format($calculation['original_total'], 2) }}</span>
+            </div>
+            @foreach($appliedCoupons as $coupon)
+                <div class="total-row" style="color: #22c55e;">
+                    <span>Applied Coupon {{ $coupon->code }} ({{ $coupon->name }}):</span>
+                    <span>-${{ number_format($calculation['total_discount'], 2) }}</span>
+                </div>
+                <div class="total-row" style="font-size: 14px; color: #666;">
+                    <span>Coupon Type:</span>
+                    <span>{{ $coupon->discount_type === 'percentage' ? $coupon->discount_value . '%' : '$' . $coupon->discount_value }}</span>
+                </div>
+            @endforeach
+            <div class="total-row final">
+                <span>Final Order Total:</span>
+                <span>${{ number_format($order->total, 2) }}</span>
+            </div>
+        @elseif($order->comment && str_contains($order->comment, 'Applied coupon:'))
+            {{-- Show coupon info from order comment if available --}}
+            @php
+                // Extract coupon information from order comment
+                $commentLines = explode("\n", $order->comment);
+                $couponLines = array_filter($commentLines, fn($line) => str_contains($line, 'Applied coupon:'));
+            @endphp
+            @if(!empty($couponLines))
+                @foreach($couponLines as $couponLine)
+                    @php
+                        // Parse coupon line: "Applied coupon: CODE (-AMOUNT USD)"
+                        preg_match('/Applied coupon: ([A-Z0-9]+) \(-\$?([0-9\.]+)/', $couponLine, $matches);
+                        $couponCode = $matches[1] ?? '';
+                        $discountAmount = $matches[2] ?? '0';
+                    @endphp
+                    @if($couponCode)
+                        <div class="total-row">
+                            <span>Subtotal:</span>
+                            <span>${{ number_format($order->total + floatval($discountAmount), 2) }}</span>
+                        </div>
+                        <div class="total-row" style="color: #22c55e;">
+                            <span>Applied Coupon {{ $couponCode }}:</span>
+                            <span>-${{ number_format($discountAmount, 2) }}</span>
+                        </div>
+                    @endif
+                @endforeach
+            @endif
+            <div class="total-row final">
+                <span>Final Order Total:</span>
+                <span>${{ number_format($order->total, 2) }}</span>
+            </div>
+        @else
+            <div class="total-row final">
+                <span>Order Total:</span>
+                <span>${{ number_format($order->total, 2) }}</span>
+            </div>
+        @endif
+    </div>
+    
+    <div style="text-align: center; margin: 30px 0; padding: 20px; background-color: #ffffff; border: 2px solid #fed7d7; border-left: 4px solid #f56565; border-radius: 8px; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);">
+        <h4 style="color: #2d3748 !important; font-size: 16px !important; font-weight: 600 !important; margin: 0 0 10px 0;">⏰ Next Steps</h4>
+        <p style="margin: 0; color: #4a5568 !important; font-size: 14px !important; font-weight: normal !important; line-height: 1.5;">Please process this order as soon as possible to ensure timely delivery.</p>
+    </div>
+    
+    <p style="color: #4a5568 !important; font-size: 14px !important; font-weight: normal !important; margin-top: 30px;">
+        <em style="color: #4a5568 !important; font-style: italic !important;">This is an automated notification. Please do not reply to this email.</em>
+    </p>
+@endsection
