@@ -45,10 +45,10 @@ class Order extends Model
     {
         return [
             self::PAYMENT_PENDING => 'Ожидает оплаты',
-            self::PAYMENT_COMPLETED => 'Оплачен',
             'processing' => 'Обрабатывается',
+            self::PAYMENT_COMPLETED => 'Оплачен',
             'cancelled' => 'Отменен',
-            self::PAYMENT_FAILED => 'Ошибка',
+            self::PAYMENT_FAILED => 'Ошибка оплаты',
             self::PAYMENT_REFUNDED => 'Возвращен',
         ];
     }

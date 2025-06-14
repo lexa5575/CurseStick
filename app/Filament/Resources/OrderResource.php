@@ -163,17 +163,10 @@ class OrderResource extends Resource
                     ->money('USD')
                     ->sortable(),
                     
-                Tables\Columns\SelectColumn::make('status')
+                Tables\Columns\TextColumn::make('status')
                     ->label('Статус заказа')
-                    ->options(\App\Models\Order::getStatuses())
-                    ->afterStateUpdated(function ($record, $state) {
-                        // Notify success
-                        \Filament\Notifications\Notification::make()
-                            ->title('Статус заказа обновлен')
-                            ->body("Заказ #{$record->order_number}: {$state}")
-                            ->success()
-                            ->send();
-                    })
+                    ->badge()
+                    ->color(fn (string $state): string => \App\Models\Order::getStatusColor($state))
                     ->sortable(),
                     
                 Tables\Columns\TextColumn::make('payment_method')
@@ -188,20 +181,18 @@ class OrderResource extends Resource
                     })
                     ->sortable(),
                     
-                Tables\Columns\SelectColumn::make('payment_status')
+                Tables\Columns\TextColumn::make('payment_status')
                     ->label('Статус оплаты')
-                    ->options(\App\Models\Order::getPaymentStatuses())
-                    ->beforeStateUpdated(function ($record, $state) {
-                        // Log status change
-                        \Log::info("Payment status changing for order {$record->id} to: {$state}");
-                    })
-                    ->afterStateUpdated(function ($record, $state) {
-                        // Notify success
-                        \Filament\Notifications\Notification::make()
-                            ->title('Статус оплаты обновлен')
-                            ->body("Заказ #{$record->order_number}: {$state}")
-                            ->success()
-                            ->send();
+                    ->badge()
+                    ->formatStateUsing(fn (string $state): string => \App\Models\Order::getPaymentStatuses()[$state] ?? $state)
+                    ->color(fn (string $state): string => match ($state) {
+                        'pending' => 'warning',
+                        'processing' => 'info',
+                        'completed' => 'success',
+                        'cancelled' => 'danger',
+                        'failed' => 'danger',
+                        'refunded' => 'gray',
+                        default => 'gray',
                     })
                     ->sortable(),
                     
