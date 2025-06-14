@@ -27,6 +27,7 @@ class User extends Authenticatable implements FilamentUser, HasName
         'email',
         'phone',
         'password',
+        'is_admin',
     ];
 
     /**
@@ -49,6 +50,7 @@ class User extends Authenticatable implements FilamentUser, HasName
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
     }
 
@@ -80,7 +82,7 @@ class User extends Authenticatable implements FilamentUser, HasName
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->hasRole('admin') || $this->hasRole('manager');
+        return $this->is_admin || $this->hasRole('admin') || $this->hasRole('manager');
     }
     
     /**
