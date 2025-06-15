@@ -80,8 +80,10 @@ class ProductResource extends Resource
                                     ->label('Скидка')
                                     ->numeric()
                                     ->prefix('$')
-                                    ->default(0)
-                                    ->hint('Оставьте 0, если скидки нет'),
+                                    ->default(null)
+                                    ->hint('Оставьте пустым, если скидки нет')
+                                    ->nullable()
+                                    ->dehydrateStateUsing(fn ($state) => $state === '' || $state === null ? 0 : $state),
                                     
                                 Toggle::make('is_active')
                                     ->label('Активен')
@@ -167,13 +169,38 @@ class ProductResource extends Resource
                     ->trueLabel('Только рекомендуемые')
                     ->falseLabel('Только обычные'),
             ])
+            ->filters([
+                Tables\Filters\SelectFilter::make('status')
+                    ->label('Статус товара')
+                    ->options([
+                        'active' => 'Активные',
+                        'trashed' => 'Удаленные',
+                        'all' => 'Все товары',
+                    ])
+                    ->default('active')
+                    ->query(function (Builder $query, array $data): Builder {
+                        return match ($data['value'] ?? 'active') {
+                            'active' => $query->whereNull('deleted_at'),
+                            'trashed' => $query->onlyTrashed(),
+                            'all' => $query->withTrashed(),
+                            default => $query->whereNull('deleted_at'),
+                        };
+                    }),
+            ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Удалить'),
+                Tables\Actions\RestoreAction::make()
+                    ->label('Восстановить'),
+                Tables\Actions\ForceDeleteAction::make()
+                    ->label('Удалить навсегда'),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
+                    Tables\Actions\RestoreBulkAction::make(),
+                    Tables\Actions\ForceDeleteBulkAction::make(),
                     Tables\Actions\BulkAction::make('toggle_active')
                         ->label('Изменить статус')
                         ->icon('heroicon-o-check-circle')
@@ -209,6 +236,23 @@ class ProductResource extends Resource
         return parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->with(['category']); // Optimize queries
+    }
+    
+    // Enable soft delete actions in admin
+    public static function canDelete(Model $record): bool
+    {
+        return true;
+    }
+    
+    public static function canRestore(Model $record): bool
+    {
+        return $record->trashed();
+    }
+    
+    public static function canForceDelete(Model $record): bool
+    {
+        return $record->trashed();
     }
 }

@@ -17,9 +17,14 @@ trait HasSlug
                 $originalSlug = $slug;
                 $count = 1;
 
-                while (static::where('slug', $slug)->when($model->exists, function ($query) use ($model) {
-                    return $query->where('id', '!=', $model->id);
-                })->exists()) {
+                while (static::where('slug', $slug)
+                    ->when($model->exists, function ($query) use ($model) {
+                        return $query->where('id', '!=', $model->id);
+                    })
+                    ->when(method_exists(static::class, 'withTrashed'), function ($query) {
+                        return $query->withTrashed(); // Include soft deleted records for slug checking
+                    })
+                    ->exists()) {
                     $slug = $originalSlug . '-' . $count++;
                 }
                 $model->slug = $slug;

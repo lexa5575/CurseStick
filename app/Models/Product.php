@@ -98,4 +98,27 @@ class Product extends Model
     {
         return $query->where('discount', '>', 0);
     }
+
+    /**
+     * Model events for cleanup
+     */
+    protected static function booted()
+    {
+        // When product is soft deleted, remove from carts
+        static::deleted(function ($product) {
+            if ($product->isForceDeleting()) {
+                // Force delete - remove everything
+                $product->cartItems()->delete();
+                $product->favorites()->delete();
+            } else {
+                // Soft delete - only remove from carts (keep favorites for restore)
+                $product->cartItems()->delete();
+            }
+        });
+
+        // When product is restored, nothing special needed
+        static::restored(function ($product) {
+            // Product is back, cart items will be recreated naturally
+        });
+    }
 }
