@@ -76,6 +76,24 @@
         </div>
     </div>
     </div>
+    
+    <!-- Trustpilot Reviews Section -->
+    <div class="bg-gray-50 py-12">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-900 mb-4">Customer Reviews</h2>
+                <p class="text-gray-600">See what our customers say about CruseStick</p>
+            </div>
+            
+            <!-- TrustBox widget - Review Collector -->
+            <div class="max-w-4xl mx-auto">
+                <div class="trustpilot-widget" data-locale="en-US" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="684ea55329d0eb9d793eff90" data-style-height="52px" data-style-width="100%">
+                    <a href="https://www.trustpilot.com/review/crusestick.com" target="_blank" rel="noopener">Trustpilot</a>
+                </div>
+            </div>
+            <!-- End TrustBox widget -->
+        </div>
+    </div>
 </div>
 @endsection
 

@@ -49,6 +49,10 @@
     
     <!-- Alpine.js -->
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <!-- TrustBox script -->
+    <script type="text/javascript" src="//widget.trustpilot.com/bootstrap/v5/tp.widget.bootstrap.min.js" async></script>
+    <!-- End TrustBox script -->
 
     <!-- Дополнительные стили -->
     <style>
@@ -192,8 +196,20 @@
                 </div>
             </div>
 
-            <div class="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400 text-sm">
-                <p>© {{ date('Y') }} CruseStick. All rights reserved.</p>
+            <!-- Trustpilot Footer Widget -->
+            <div class="border-t border-gray-700 mt-8 pt-8">
+                <div class="text-center mb-6">
+                    <h3 class="text-lg font-semibold text-white mb-4">Customer Reviews</h3>
+                    <!-- TrustBox widget - Review Collector -->
+                    <div class="trustpilot-widget" data-locale="en-US" data-template-id="56278e9abfbbba0bdcd568bc" data-businessunit-id="684ea55329d0eb9d793eff90" data-style-height="52px" data-style-width="100%">
+                        <a href="https://www.trustpilot.com/review/crusestick.com" target="_blank" rel="noopener">Trustpilot</a>
+                    </div>
+                    <!-- End TrustBox widget -->
+                </div>
+                
+                <div class="text-center text-gray-400 text-sm">
+                    <p>© {{ date('Y') }} CruseStick. All rights reserved.</p>
+                </div>
             </div>
         </div>
     </footer>
